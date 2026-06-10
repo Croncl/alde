@@ -1,4 +1,4 @@
-# 🤖 Assistente Técnico Inteligente para Linux
+# 🤖 Assistente Técnico Inteligente para Linux Debian (ALDE)
 
 Um assistente virtual especializado em comandos e ferramentas Linux, utilizando **Ollama** + **FastAPI** com CI/CD automatizado via GitHub Actions e Docker.
 
