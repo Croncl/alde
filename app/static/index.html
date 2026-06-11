@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALDE – Assistente Linux</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────────── */
+    :root[data-theme="dark"] {
+      --bg:        #282a36;
+      --bg-panel:  #21222c;
+      --bg-input:  #191a21;
+      --border:    #44475a;
+      --text:      #f8f8f2;
+      --text-dim:  #6272a4;
+      --accent:    #bd93f9;
+      --accent2:   #50fa7b;
+      --accent3:   #ff79c6;
+      --warn:      #ffb86c;
+      --error:     #ff5555;
+      --user-bg:   #44475a;
+      --bot-bg:    #21222c;
+      --code-bg:   #191a21;
+      --scrollbar: #44475a;
+    }
+
+    :root[data-theme="light"] {
+      --bg:        #f8f8f2;
+      --bg-panel:  #ffffff;
+      --bg-input:  #f1f1f1;
+      --border:    #d0d0d0;
+      --text:      #282a36;
+      --text-dim:  #6272a4;
+      --accent:    #7c3aed;
+      --accent2:   #16a34a;
+      --accent3:   #db2777;
+      --warn:      #d97706;
+      --error:     #dc2626;
+      --user-bg:   #ede9fe;
+      --bot-bg:    #ffffff;
+      --code-bg:   #f1f1f1;
+      --scrollbar: #d0d0d0;
+    }
+
+    /* ─── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      transition: background .2s, color .2s;
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      height: 52px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: .95rem;
+      letter-spacing: .04em;
+    }
+
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font-size: .7rem;
+      color: var(--bg);
+      font-weight: 700;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    /* status pill */
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .72rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .2rem .65rem;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: background .3s;
+    }
+
+    .status-dot.ok   { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+    .status-dot.err  { background: var(--error); }
+
+    /* theme toggle */
+    .theme-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .3rem .55rem;
+      cursor: pointer;
+      font-size: .85rem;
+      color: var(--text);
+      transition: border-color .15s, background .15s;
+    }
+    .theme-btn:hover { border-color: var(--accent); background: var(--bg); }
+
+    /* ─── LAYOUT ─────────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ─── SIDEBAR ────────────────────────────────────────────── */
+    aside {
+      width: 220px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem .75rem;
+      gap: .5rem;
+      flex-shrink: 0;
+    }
+
+    .sidebar-label {
+      font-size: .65rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: .08em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      padding: .25rem .5rem;
+    }
+
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .45rem .6rem;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: .82rem;
+      font-family: 'Inter', sans-serif;
+      transition: background .12s, border-color .12s;
+      text-align: left;
+    }
+
+    .profile-btn:hover { background: var(--bg); border-color: var(--border); }
+
+    .profile-btn.active {
+      background: var(--bg);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .profile-btn .pip {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: .25rem 0;
+    }
+
+    .new-chat-btn {
+      margin-top: auto;
+      padding: .5rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: .8rem;
+      font-family: 'Inter', sans-serif;
+      transition: color .12s, border-color .12s;
+    }
+    .new-chat-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ─── CHAT AREA ──────────────────────────────────────────── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    .messages::-webkit-scrollbar { width: 5px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 99px; }
+
+    /* welcome screen */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 1rem;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .welcome-icon {
+      font-size: 2.5rem;
+      filter: grayscale(.3);
+    }
+
+    .welcome h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .welcome p {
+      font-size: .85rem;
+      max-width: 340px;
+      line-height: 1.6;
+    }
+
+    .quick-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      justify-content: center;
+      margin-top: .5rem;
+    }
+
+    .quick-btn {
+      padding: .35rem .75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text);
+      cursor: pointer;
+      font-size: .78rem;
+      font-family: 'JetBrains Mono', monospace;
+      transition: border-color .12s, color .12s;
+    }
+    .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* message bubble */
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+      max-width: 780px;
+      animation: fadeUp .2s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.bot  { align-self: flex-start; align-items: flex-start; }
+
+    .msg-label {
+      font-size: .65rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      letter-spacing: .05em;
+    }
+
+    .msg-bubble {
+      padding: .7rem 1rem;
+      border-radius: 10px;
+      font-size: .88rem;
+      line-height: 1.65;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg.user .msg-bubble {
+      background: var(--user-bg);
+      border-color: var(--accent);
+    }
+
+    .msg.bot .msg-bubble {
+      background: var(--bot-bg);
+    }
+
+    /* inline code */
+    .msg-bubble code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82em;
+      background: var(--code-bg);
+      padding: .1em .35em;
+      border-radius: 4px;
+      color: var(--accent3);
+    }
+
+    /* code blocks */
+    .msg-bubble pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .85rem 1rem;
+      margin: .5rem 0;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .msg-bubble pre code {
+      background: none;
+      padding: 0;
+      color: var(--accent2);
+      font-size: .83rem;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: .4rem; right: .5rem;
+      background: var(--border);
+      border: none;
+      border-radius: 4px;
+      padding: .15rem .45rem;
+      font-size: .65rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+    .copy-btn:hover { background: var(--accent); color: var(--bg); }
+
+    /* typing indicator */
+    .typing .msg-bubble {
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .65rem 1rem;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      animation: bounce .9s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: .15s; }
+    .dot:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%           { transform: translateY(-5px); }
+    }
+
+    /* ─── INPUT BAR ──────────────────────────────────────────── */
+    .input-bar {
+      padding: .85rem 1.25rem 1rem;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: .6rem;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .65rem .9rem;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: .88rem;
+      resize: none;
+      min-height: 44px;
+      max-height: 160px;
+      line-height: 1.5;
+      transition: border-color .15s;
+      outline: none;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--text-dim); }
+
+    .send-btn {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      transition: opacity .15s, transform .1s;
+    }
+
+    .send-btn:hover  { opacity: .85; }
+    .send-btn:active { transform: scale(.95); }
+    .send-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .input-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .7rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .session-id {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 260px;
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      aside { display: none; }
+      .messages { padding: 1rem .75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">$_</div>
+    ALDE <span>·</span> Assistente Linux
+  </div>
+  <div class="header-controls">
+    <div class="status-pill" id="statusPill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">verificando…</span>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">🌙</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="sidebar-label">Perfil</div>
+
+    <button class="profile-btn active" data-profile="default" onclick="setProfile(this)">
+      <span class="pip" style="background:#bd93f9"></span> Padrão
+    </button>
+    <button class="profile-btn" data-profile="iniciante" onclick="setProfile(this)">
+      <span class="pip" style="background:#50fa7b"></span> Iniciante
+    </button>
+    <button class="profile-btn" data-profile="avancado" onclick="setProfile(this)">
+      <span class="pip" style="background:#ffb86c"></span> Avançado
+    </button>
+    <button class="profile-btn" data-profile="debug" onclick="setProfile(this)">
+      <span class="pip" style="background:#ff5555"></span> Debug
+    </button>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Modelo</div>
+    <div id="modelName" style="font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);padding:.25rem .5rem">—</div>
+
+    <button class="new-chat-btn" onclick="newChat()">+ Nova conversa</button>
+  </aside>
+
+  <!-- CHAT -->
+  <main>
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🐧</div>
+        <h2>Olá, sou o ALDE</h2>
+        <p>Seu assistente técnico Linux. Pergunte sobre comandos, rede, processos, Docker, Git e mais.</p>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="quickSend('como listar arquivos por tamanho?')">ls por tamanho</button>
+          <button class="quick-btn" onclick="quickSend('como ver portas abertas no sistema?')">portas abertas</button>
+          <button class="quick-btn" onclick="quickSend('como matar um processo pelo nome?')">matar processo</button>
+          <button class="quick-btn" onclick="quickSend('como verificar uso de disco?')">uso de disco</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-row">
+        <textarea
+          id="inputMsg"
+          placeholder="Digite sua pergunta Linux…"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">
+          ➤
+        </button>
+      </div>
+      <div class="input-meta">
+        <span class="session-id" id="sessionDisplay">sessão: nova</span>
+        <span>Enter para enviar · Shift+Enter nova linha</span>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // ─── STATE ────────────────────────────────────────────────
+  let sessionId   = null;
+  let profile     = 'default';
+  let isLoading   = false;
+  const API       = '';   // mesmo host
+
+  // ─── INIT ─────────────────────────────────────────────────
+  checkHealth();
+  setInterval(checkHealth, 30000);
+
+  async function checkHealth() {
+    try {
+      const r = await fetch(`${API}/health`);
+      const d = await r.json();
+      const dot  = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      if (d.ollama_connected) {
+        dot.className = 'status-dot ok';
+        text.textContent = 'ollama online';
+      } else {
+        dot.className = 'status-dot err';
+        text.textContent = 'ollama offline';
+      }
+    } catch {
+      document.getElementById('statusDot').className = 'status-dot err';
+      document.getElementById('statusText').textContent = 'api offline';
+    }
+
+    // load model name
+    try {
+      const r = await fetch(`${API}/models`);
+      const d = await r.json();
+      if (d.models?.length) {
+        document.getElementById('modelName').textContent = d.models[0].name;
+      }
+    } catch {}
+  }
+
+  // ─── THEME ────────────────────────────────────────────────
+  const themeBtn = document.getElementById('themeBtn');
+  themeBtn.addEventListener('click', () => {
+    const html  = document.documentElement;
+    const isDark = html.dataset.theme === 'dark';
+    html.dataset.theme   = isDark ? 'light' : 'dark';
+    themeBtn.textContent = isDark ? '🌙' : '☀️';
+  });
+
+  // ─── PROFILE ──────────────────────────────────────────────
+  function setProfile(btn) {
+    document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    profile = btn.dataset.profile;
+  }
+
+  // ─── NEW CHAT ─────────────────────────────────────────────
+  function newChat() {
+    sessionId = null;
+    document.getElementById('sessionDisplay').textContent = 'sessão: nova';
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = `
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🐧</div>
+        <h2>Olá, sou o ALDE</h2>
+        <p>Seu assistente técnico Linux. Pergunte sobre comandos, rede, processos, Docker, Git e mais.</p>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="quickSend('como listar arquivos por tamanho?')">ls por tamanho</button>
+          <button class="quick-btn" onclick="quickSend('como ver portas abertas no sistema?')">portas abertas</button>
+          <button class="quick-btn" onclick="quickSend('como matar um processo pelo nome?')">matar processo</button>
+          <button class="quick-btn" onclick="quickSend('como verificar uso de disco?')">uso de disco</button>
+        </div>
+      </div>`;
+  }
+
+  // ─── QUICK SEND ───────────────────────────────────────────
+  function quickSend(text) {
+    document.getElementById('inputMsg').value = text;
+    sendMessage();
+  }
+
+  // ─── TEXTAREA AUTORESIZE ──────────────────────────────────
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  // ─── KEY HANDLER ──────────────────────────────────────────
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  // ─── SEND MESSAGE ─────────────────────────────────────────
+  async function sendMessage() {
+    const input = document.getElementById('inputMsg');
+    const text  = input.value.trim();
+    if (!text || isLoading) return;
+
+    // hide welcome
+    const welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    // add user bubble
+    appendMsg('user', text);
+    input.value = '';
+    input.style.height = 'auto';
+
+    // typing indicator
+    const typingId = appendTyping();
+
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    try {
+      const res = await fetch(`${API}/chat`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          message:    text,
+          session_id: sessionId,
+          profile:    profile,
+        }),
+      });
+
+      const data = await res.json();
+      removeTyping(typingId);
+
+      if (!res.ok) {
+        appendMsg('bot', `⚠️ Erro: ${data.detail || 'Falha na requisição'}`);
+        return;
+      }
+
+      sessionId = data.session_id;
+      document.getElementById('sessionDisplay').textContent =
+        `sessão: ${sessionId.slice(0, 8)}…`;
+
+      appendMsg('bot', data.response);
+
+    } catch (err) {
+      removeTyping(typingId);
+      appendMsg('bot', `⚠️ Não foi possível conectar à API. Verifique se o servidor está rodando.`);
+    } finally {
+      isLoading = false;
+      document.getElementById('sendBtn').disabled = false;
+      input.focus();
+    }
+  }
+
+  // ─── APPEND MESSAGE ───────────────────────────────────────
+  function appendMsg(role, text) {
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div');
+    div.className = `msg ${role}`;
+
+    const label = document.createElement('div');
+    label.className = 'msg-label';
+    label.textContent = role === 'user' ? 'você' : 'ALDE';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = formatMessage(text);
+
+    div.appendChild(label);
+    div.appendChild(bubble);
+    msgs.appendChild(div);
+
+    // copy buttons for code blocks
+    div.querySelectorAll('pre').forEach(pre => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'copiar';
+      btn.onclick = () => {
+        navigator.clipboard.writeText(pre.querySelector('code')?.textContent || pre.textContent);
+        btn.textContent = 'copiado!';
+        setTimeout(() => btn.textContent = 'copiar', 1500);
+      };
+      pre.style.position = 'relative';
+      pre.appendChild(btn);
+    });
+
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  // ─── FORMAT MESSAGE (markdown-lite) ──────────────────────
+  function formatMessage(text) {
+    // fenced code blocks
+    text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code>${escHtml(code.trim())}</code></pre>`
+    );
+    // inline code
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // bold
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // newlines outside pre
+    text = text.replace(/\n/g, '<br>');
+    return text;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ─── TYPING INDICATOR ─────────────────────────────────────
+  function appendTyping() {
+    const msgs = document.getElementById('messages');
+    const id   = 'typing-' + Date.now();
+    const div  = document.createElement('div');
+    div.className = 'msg bot typing';
+    div.id = id;
+    div.innerHTML = `
+      <div class="msg-label">ALDE</div>
+      <div class="msg-bubble">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    document.getElementById(id)?.remove();
+  }
+</script>
+</body>
+</html>
