@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "categories": {
+    "arquivos": {
+      "descricao": "Gerenciamento de arquivos e diretórios",
+      "comandos": [
+        {"cmd": "ls -lah", "desc": "Lista arquivos com detalhes, incluindo ocultos e tamanhos legíveis"},
+        {"cmd": "find /path -name '*.log' -mtime +7", "desc": "Encontra arquivos .log com mais de 7 dias"},
+        {"cmd": "du -sh *", "desc": "Mostra tamanho de cada item no diretório atual"},
+        {"cmd": "rsync -avz src/ dest/", "desc": "Copia/sincroniza diretórios com progresso"},
+        {"cmd": "tar -czf backup.tar.gz /dir", "desc": "Compacta diretório em .tar.gz"}
+      ]
+    },
+    "rede": {
+      "descricao": "Diagnóstico e configuração de rede",
+      "comandos": [
+        {"cmd": "ip a", "desc": "Lista interfaces de rede e endereços IP"},
+        {"cmd": "ss -tulpn", "desc": "Mostra portas abertas e processos associados"},
+        {"cmd": "ping -c 4 8.8.8.8", "desc": "Testa conectividade com 4 pacotes"},
+        {"cmd": "traceroute google.com", "desc": "Rastreia rota até o destino"},
+        {"cmd": "curl -I https://site.com", "desc": "Verifica cabeçalhos HTTP de um site"},
+        {"cmd": "nmcli device status", "desc": "Status das interfaces de rede (NetworkManager)"}
+      ]
+    },
+    "processos": {
+      "descricao": "Gerenciamento de processos e recursos",
+      "comandos": [
+        {"cmd": "top", "desc": "Monitor de processos em tempo real"},
+        {"cmd": "htop", "desc": "Monitor interativo (mais visual que top)"},
+        {"cmd": "ps aux --sort=-%cpu | head -10", "desc": "Top 10 processos por CPU"},
+        {"cmd": "kill -9 PID", "desc": "Força encerramento de processo pelo PID"},
+        {"cmd": "systemctl status serviço", "desc": "Status de um serviço systemd"},
+        {"cmd": "journalctl -u serviço -f", "desc": "Logs em tempo real de um serviço"}
+      ]
+    },
+    "texto": {
+      "descricao": "Manipulação de texto",
+      "comandos": [
+        {"cmd": "grep -rn 'padrão' /dir", "desc": "Busca recursiva de padrão em arquivos"},
+        {"cmd": "sed -i 's/velho/novo/g' arquivo", "desc": "Substitui texto em arquivo"},
+        {"cmd": "awk '{print $1, $3}' arquivo", "desc": "Extrai colunas 1 e 3 do arquivo"},
+        {"cmd": "sort -u arquivo.txt", "desc": "Ordena e remove duplicatas"},
+        {"cmd": "wc -l arquivo.txt", "desc": "Conta linhas do arquivo"}
+      ]
+    },
+    "docker": {
+      "descricao": "Comandos Docker essenciais",
+      "comandos": [
+        {"cmd": "docker ps -a", "desc": "Lista todos os containers (incluindo parados)"},
+        {"cmd": "docker logs -f container", "desc": "Acompanha logs do container em tempo real"},
+        {"cmd": "docker exec -it container bash", "desc": "Abre shell no container"},
+        {"cmd": "docker system prune -a", "desc": "Remove imagens, containers e volumes não usados"},
+        {"cmd": "docker stats", "desc": "Uso de recursos dos containers em tempo real"}
+      ]
+    },
+    "git": {
+      "descricao": "Comandos Git frequentes",
+      "comandos": [
+        {"cmd": "git log --oneline --graph", "desc": "Histórico visual simplificado"},
+        {"cmd": "git stash", "desc": "Guarda mudanças temporariamente"},
+        {"cmd": "git diff HEAD~1", "desc": "Diff em relação ao commit anterior"},
+        {"cmd": "git reset --soft HEAD~1", "desc": "Desfaz último commit mantendo as mudanças"},
+        {"cmd": "git cherry-pick <hash>", "desc": "Aplica commit específico na branch atual"}
+      ]
+    }
+  }
+}

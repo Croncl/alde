@@ -1,0 +1,63 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyi
+*.so
+*.dylib
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.python-version
+
+# Local environment files
+.env
+.env.*
+*.env.local
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Tool cache
+.ruff_cache/
+.mypy_cache/
+.pyright/
+
+# Logs and runtime files
+*.log
+*.sqlite3
+*.db
+*.db-journal
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Ollama and LLM models
+.ollama/
+ollama_data/
+*.onnx
+*.bin
+*.safetensors
+models/
+**/models/
