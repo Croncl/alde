@@ -1,38 +1,33 @@
----
 
-# 🤖 Assistente Técnico Inteligente para Linux Debian (ALDE)
+# 🤖 Assistente Técnico Inteligente para Linux Debian/Ubuntu (ALDE)
 
-Um assistente virtual especializado em comandos e ferramentas Linux, utilizando **Ollama** + **FastAPI**, com CI/CD automatizado via GitHub Actions e Docker.
+Um assistente virtual agêntico especializado em infraestrutura Linux, diagnósticos e ecossistema Docker. Ele utiliza a arquitetura **Ollama** + **FastAPI**, operando de forma 100% offline e local com automação unificada via **Docker Compose**.
 
 ## 📋 Tabela de Conteúdos
 - [Sobre o Projeto](#sobre-o-projeto)  
 - [Características](#características)  
 - [Tecnologias](#tecnologias)  
+- [Arquitetura de Modelos](#arquitetura-de-modelos)
 - [Pré-requisitos](#pré-requisitos)  
-- [Instalação](#instalação)  
-- [Configuração](#configuração)  
-- [Uso](#uso)  
+- [Instalação Local (Desenvolvimento)](#instalação-local-desenvolvimento)  
+- [Inicialização Unificada (Produção/Docker)](#inicialização-unificada-produção-docker)
+- [Configuração (.env)](#configuração-env)  
+- [Uso e Exemplos](#uso-e-exemplos)  
 - [Endpoints da API](#endpoints-da-api)  
-- [Docker](#docker)  
 - [CI/CD](#cicd)  
-- [Personalização](#personalização)  
 - [Estrutura do Projeto](#estrutura-do-projeto)  
-- [Contribuição](#contribuição)  
 - [Licença](#licença)  
 
 ---
 
 ## 🎯 Sobre o Projeto
-O **ALDE** é um assistente técnico inteligente para Linux, rodando localmente com **Ollama** e exposto via **FastAPI**.  
-Ele responde perguntas sobre terminal, rede, processos, Docker, Git e muito mais — sem depender de internet ou cloud.
+O **ALDE** (Assistente Linux de Diagnóstico e Execução) é um engenheiro DevOps sênior virtual focado em resolução de problemas, análise forense de logs e orquestração de containers. Ele roda localmente e expõe uma API RESTful robusta desenvolvida em **FastAPI**.
 
 ### Características
-- ✅ **Leve e eficiente** – funciona até em máquinas com 4GB RAM  
-- ✅ **Containerizado** – fácil implantação com Docker  
-- ✅ **CI/CD automatizado** – pipeline com GitHub Actions  
-- ✅ **Configurável** – prompts e perfis customizáveis  
-- ✅ **API RESTful** – endpoints simples e documentados  
-- ✅ **Offline** – não depende de serviços externos  
+- ✅ **Inteligência Avançada (MoE)** – Equipado com modelo de Mistura de Especialistas focado nativamente em recuperação de falhas de execução e análise agêntica.
+- ✅ **Janela de Contexto Massiva** – Capacidade nativa de processar até **256k tokens**, ideal para analisar logs extensos de sistemas (`journalctl`, `dmesg`).
+- ✅ **Inicialização em um Único Comando** – O ecossistema orquestra o motor de IA, o setup do modelo customizado e a API automaticamente.
+- ✅ **Offline e Seguro** – Tráfego de dados estritamente local; operação segura rodando sob usuário não-root (`alde`) dentro do container.
 
 ---
 
@@ -40,238 +35,212 @@ Ele responde perguntas sobre terminal, rede, processos, Docker, Git e muito mais
 
 | Tecnologia | Versão | Finalidade |
 |------------|--------|------------|
-| **Python** | 3.11 | Linguagem principal (⚠️ necessário usar **Python 3.11** porque o `pydantic-core`, dependência do FastAPI/Pydantic, ainda não suporta Python 3.13. Se usar 3.13, a instalação falha ao compilar o módulo em Rust via PyO3. No Debian 13, o Python padrão é 3.13, então é preciso compilar e instalar o Python 3.11 manualmente para criar o venv) |
-| **FastAPI** | 0.100+ | Framework web |
-| **Ollama** | 0.1+ | Modelos LLM locais |
-| **Docker** | 24+ | Containerização |
-| **GitHub Actions** | - | CI/CD Pipeline |
-| **Pytest** | 7+ | Testes |
-| **Ruff** | 0.1+ | Linter/Formatter |
-| **Uvicorn** | 0.23+ | Servidor ASGI |
+| **Python** | 3.11 | Linguagem principal (⚠️ *Requisito estrito*: versões superiores como a 3.13 que acompanham distribuições como o Debian 13 exigem compilação manual do venv devido a travas de compilação do `pydantic-core` em Rust via PyO3). |
+| **FastAPI** | 0.111.0 | Framework web assíncrono |
+| **Ollama** | 0.6.2 | Gerenciador e runtime de LLMs locais |
+| **Qwen3-Coder-Next** | MoE | Modelo principal focado em código e automação CLI |
+| **Docker / Compose** | 24+ / 3.8+ | Containerização e orquestração do ecossistema |
+| **Uvicorn** | 0.30.1 | Servidor ASGI de produção |
+| **Pytest** | 8.2.2 | Framework de testes unitários e de integração |
+| **Ruff** | 0.4.9 | Linter e formatador estático ultra-rápido |
+
+---
+
+## 🧠 Arquitetura de Modelos
+O ALDE adota uma hierarquia dinâmica de execução (fallback) configurada em runtime, adaptando-se à disponibilidade do hardware local:
+
+1. **`alde`** (Modelo customizado gerado automaticamente via `Modelfile`)
+2. **`qwen3-coder-next`** (Prioritário: Arquitetura MoE, 3B parâmetros ativos por token. Fornece raciocínio profundo com consumo de processamento reduzido).
+3. **`qwen2.5-coder:1.5b`** (Fallback de contingência ultra leve para cenários de extrema restrição de hardware).
 
 ---
 
 ## 📦 Pré-requisitos
-- Linux (Debian/Ubuntu recomendado)  
-- **Python 3.11** (⚠️ no Debian 13 é necessário compilar manualmente, pois o repositório oficial só traz Python 3.13)  
-- Ollama instalado e rodando  
-- Docker Engine 24+ (opcional, para containerização)  
+- Sistema Operacional Linux (Debian 11+ ou Ubuntu 22.04+ recomendado).
+- Arquitetura **x86_64** (Processadores Intel Core i5 de 3ª geração ou superiores).
+- Memória RAM mínima de **16 GB** para comportar o modelo MoE e o ecossistema de containers de teste em paralelo.
+- Docker Engine instalado e o daemon do Docker ativo.
 
 ---
 
-## 🚀 Instalação
+## 🚀 Instalação Local (Desenvolvimento)
 
-### Instalar Python 3.11 no Debian 13
+Se você deseja rodar os componentes de forma isolada em sua máquina para depuração:
+
+### 1. Preparar o Ambiente Python 3.11 (Exemplo para sistemas com Python nativo divergente)
 ```bash
-sudo apt update
-sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev \
-    libnss3-dev libssl-dev libreadline-dev libffi-dev wget
-
-wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz
-tar -xvf Python-3.11.9.tgz
-cd Python-3.11.9
+sudo apt update && sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
+wget [https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz](https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz)
+tar -xvf Python-3.11.9.tgz && cd Python-3.11.9
 ./configure --enable-optimizations
 make -j$(nproc)
-sudo make altinstall   # instala python3.11 sem substituir o python3 padrão
+sudo make altinstall
+
 ```
 
----
+### 2. Configurar o Ambiente Virtual e Dependências de Desenvolvimento
 
-### 📦 Criar ambiente virtual e instalar dependências
 ```bash
-cd ~/Documentos/Projetos/projeto_alde
-rm -rf .venv
+cd /caminho/do/seu/projeto_alde
 python3.11 -m venv .venv
 source .venv/bin/activate
-
-# Atualizar ferramentas básicas
 pip install --upgrade pip setuptools wheel
+pip install -r requirements.dev.txt
 
-# Instalar dependências do projeto
-pip install -r requirements.txt
+```
+
+### 3. Rodar a API manualmente em Modo Recarga (Reload)
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
 ```
 
 ---
 
-### 🚀 Instalar Ollama (binário do servidor)
+## 🐳 Inicialização Unificada (Produção / Docker)
+
+O projeto está totalmente automatizado. Você **não precisa** baixar modelos ou configurar o Ollama antes de iniciar. O Docker Compose gerencia o ciclo completo de orquestração.
+
+Para subir o ecossistema completo (Ollama + Compilador do Modelo ALDE + API FastAPI), execute na raiz do projeto:
+
 ```bash
-# Instalar Ollama no sistema
-curl -fsSL https://ollama.com/install.sh | sh
+docker compose up -d
+
 ```
 
----
+> ⏳ **Nota sobre a primeira execução:** O container de setup irá detectar a inicialização do Ollama, baixar os gigabytes necessários do modelo base `qwen3-coder-next` e criar a persona customizada `alde`. Esse processo é executado uma única vez; as inicializações subsequentes são instantâneas utilizando os volumes persistidos.
 
-### 📥 Baixar modelo necessário
+Para monitorar o progresso do download e compilação do modelo da IA:
+
 ```bash
-ollama pull llama3.2:3b
+docker logs -f alde-ollama-setup
+
 ```
 
----
-
-### 💻 Rodar a aplicação
-```bash
-uvicorn app.main:app --reload
-```
 ---
 
 ## ⚙️ Configuração
-Crie um arquivo `.env`:
-```env
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=llama3.2:3b
-API_HOST=0.0.0.0
-API_PORT=8000
-API_TITLE="Assistente Linux AI"
-API_VERSION="1.0.0"
-SYSTEM_PROMPT="Você é um especialista em Linux. Ajude com comandos e ferramentas."
+
+O comportamento do sistema é controlado pelo arquivo `.env`. Copie o modelo padrão para uso:
+
+```bash
+cp .env.example .env
+
 ```
 
-Perfis disponíveis (em `prompts_config.py`):
-- `default` → respostas técnicas diretas  
-- `iniciante` → explicações simples com avisos  
-- `avancado` → conciso, flags avançadas  
-- `debug` → foco em diagnóstico  
+Configurações recomendadas no seu `.env`:
+
+```env
+OLLAMA_HOST=http://alde-ollama:11434
+OLLAMA_MODEL=qwen3-coder-next
+API_HOST=0.0.0.0
+API_PORT=8000
+API_TITLE="ALDE - Assistente Linux de Diagnóstico"
+API_VERSION="1.0.0"
+SYSTEM_PROMPT="Você é o ALDE. Responda estritamente focado em comandos verificados e segurança em sistemas Linux."
+
+```
 
 ---
 
-## 💻 Uso
-Acesse a documentação interativa: `http://localhost:8000/docs`
+## 💻 Uso e Exemplos
 
-### Exemplos
+A documentação interativa OpenAPI do FastAPI fica disponível imediatamente em: `http://localhost:8000/docs`
+
+### Exemplo de Diagnóstico de Logs via Terminal (`curl`)
+
+O ALDE aceita strings extensas de logs para análise de causa-raiz:
+
 ```bash
-# Chat simples
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "como listar arquivos por tamanho?"}'
+  -d '{
+    "message": "Analise o seguinte erro do docker-compose: container killed, exiting with code 137",
+    "profile": "debug"
+  }'
 
-# Histórico (em memória da execução atual)
-curl http://localhost:8000/history
+```
 
-# Listar modelos instalados
+### Comandos de Monitoramento Úteis
+
+```bash
+# Verificar status de saúde da API
+curl http://localhost:8000/health
+
+# Listar os modelos carregados e disponíveis no motor local
 curl http://localhost:8000/models
 
-# Status da API
-curl http://localhost:8000/health
+# Limpar o histórico de turnos da sessão atual
+curl -X DELETE http://localhost:8000/history
+
 ```
 
 ---
 
 ## 📡 Endpoints da API
+
 | Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/` | Informações do projeto |
-| `GET` | `/health` | Health check |
-| `POST` | `/chat` | Enviar mensagem |
-| `GET` | `/history` | Obter histórico atual |
-| `DELETE` | `/history` | Limpar histórico |
-| `GET` | `/models` | Listar modelos disponíveis |
-
----
-
-## 🐳 Docker
-### Build da imagem
-```bash
-docker build -t assistente-linux-ai:latest .
-```
-
-### Executar com Docker Compose
-```bash
-docker compose up -d
-```
-
-Na primeira execução, baixe o modelo:
-```bash
-docker exec alde-ollama ollama pull llama3.2:3b
-```
+| --- | --- | --- |
+| `GET` | `/` | Metadados do projeto e status do sistema |
+| `GET` | `/health` | Verificação de integridade (usada pelo Healthcheck do Docker) |
+| `POST` | `/chat` | Envio de prompts de diagnóstico ou requisições de código |
+| `GET` | `/history` | Retorna o histórico de conversação em memória |
+| `DELETE` | `/history` | Limpa a memória de contexto da sessão |
+| `GET` | `/models` | Consulta as tags de modelos prontas no Ollama local |
 
 ---
 
 ## 🔄 CI/CD
-Pipeline com testes, linting e build automático via GitHub Actions.  
 
-Secrets necessários:  
-- `DOCKER_USERNAME`  
-- `DOCKER_TOKEN`  
+O projeto conta com uma pipeline automatizada via **GitHub Actions** (`.github/workflows/ci-cd.yml`) encarregada de executar:
 
----
+1. Checagem estática de tipos com o `mypy`.
+2. Linting e formatação estrita de código com o `ruff`.
+3. Execução da suíte de testes automatizados com o `pytest` coletando cobertura através do `pytest-cov`.
+4. Build e publicação da imagem Docker em caso de sucesso.
 
-## 📚 Base de Conhecimento
+Certifique-se de configurar os seguintes Secrets no seu repositório do GitHub:
 
-O ALDE utiliza como referência principal a documentação oficial do Debian:
-
-- [Documentação Debian em Português](https://www.debian.org/doc/user-manuals.pt.html#faq)
-
-Esses manuais fornecem respostas para dúvidas frequentes, guias de instalação e boas práticas de administração de sistemas Linux.
-
----
-
-
-## 🎨 Personalização
-Adicione conhecimento específico em `knowledge_base.json`:
-```json
-{
-  "comandos": {
-    "find": "Busca arquivos...",
-    "grep": "Busca texto...",
-    "awk": "Processamento de texto..."
-  }
-}
-```
-
-Perfis customizados em `prompts_config.py`:
-```python
-CUSTOM_PROMPTS = {
-    "iniciante": "Explique comandos básicos de forma simples...",
-    "avancado": "Foque em otimização e boas práticas...",
-    "debug": "Ajude a diagnosticar problemas de sistema..."
-}
-```
+* `DOCKER_USERNAME`
+* `DOCKER_TOKEN`
 
 ---
 
 ## 📁 Estrutura do Projeto
-```
-assistente-linux-ai/
-├── .github/workflows/ci-cd.yml
+
+```text
+projeto_alde/
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml          # Pipeline de integração contínua
 ├── app/
-│   ├── main.py
-│   ├── models.py
-│   ├── routes/
-│   ├── services/
-│   └── utils/
+│   ├── main.py                # Ponto de entrada FastAPI e Uvicorn
+│   ├── models.py              # Esquemas de dados Pydantic
+│   ├── routes/                # Endpoints RESTful da aplicação
+│   └── services/              # Integração direta com a API do Ollama
 ├── knowledge_base/
-│   ├── knowledge_base.json
-│   └── prompts_config.py
-├── tests/
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── README.md
+│   ├── knowledge_base.json    # Dicionário estático de comandos de suporte
+│   └── prompts_config.py      # Configuração de fallbacks e parâmetros matemáticos (num_ctx)
+├── tests/                     # Arquivos de teste do Pytest
+├── docker-compose.yml         # Orquestração do Ollama, Setup e API
+├── Dockerfile                 # Construção da imagem leve e segura da API (non-root)
+├── Modelfile                  # Definição e System Prompt da Persona ALDE no Ollama
+├── requirements.txt           # Dependências de produção
+└── requirements.dev.txt       # Dependências de desenvolvimento e teste
+
 ```
-
----
-
-## 🤝 Contribuição
-1. Fork o projeto  
-2. Crie uma branch (`git checkout -b feature/minha-feature`)  
-3. Commit (`git commit -m 'feat: minha feature'`)  
-4. Push (`git push origin feature/minha-feature`)  
-5. Abra um Pull Request  
 
 ---
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está sob os termos da licença **MIT**. Consulte o arquivo `LICENSE` para obter mais detalhes.
 
 ---
 
+**Desenvolvido para administração de sistemas moderna, robusta e 100% local.** 🐧
 
-## 📞 Suporte
-
-- 📧 Email:  
-- 🐛 Issues: [GitHub Issues](link)
-- 💬 Discussões: [GitHub Discussions](link)
 
 ---
 

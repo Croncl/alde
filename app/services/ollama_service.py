@@ -52,7 +52,7 @@ def chat(
         resp = requests.post(
             f"{OLLAMA_BASE_URL}/api/chat",
             json=payload,
-            timeout=120,
+            timeout=600,
         )
         resp.raise_for_status()
         data = resp.json()
