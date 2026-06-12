@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    /* ─── TOKENS ─────────────────────────────────────────────── */
     :root[data-theme="dark"] {
       --bg:        #282a36;
       --bg-panel:  #21222c;
@@ -44,7 +43,6 @@
       --scrollbar: #d0d0d0;
     }
 
-    /* ─── RESET ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -57,7 +55,6 @@
       transition: background .2s, color .2s;
     }
 
-    /* ─── HEADER ─────────────────────────────────────────────── */
     header {
       display: flex;
       align-items: center;
@@ -98,7 +95,6 @@
       gap: .75rem;
     }
 
-    /* status pill */
     .status-pill {
       display: flex;
       align-items: center;
@@ -119,10 +115,9 @@
       transition: background .3s;
     }
 
-    .status-dot.ok   { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
-    .status-dot.err  { background: var(--error); }
+    .status-dot.ok  { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+    .status-dot.err { background: var(--error); }
 
-    /* theme toggle */
     .theme-btn {
       background: var(--bg-input);
       border: 1px solid var(--border);
@@ -135,14 +130,12 @@
     }
     .theme-btn:hover { border-color: var(--accent); background: var(--bg); }
 
-    /* ─── LAYOUT ─────────────────────────────────────────────── */
     .layout {
       display: flex;
       flex: 1;
       overflow: hidden;
     }
 
-    /* ─── SIDEBAR ────────────────────────────────────────────── */
     aside {
       width: 220px;
       background: var(--bg-panel);
@@ -213,7 +206,6 @@
     }
     .new-chat-btn:hover { color: var(--accent); border-color: var(--accent); }
 
-    /* ─── CHAT AREA ──────────────────────────────────────────── */
     main {
       flex: 1;
       display: flex;
@@ -235,7 +227,6 @@
     .messages::-webkit-scrollbar-track { background: transparent; }
     .messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 99px; }
 
-    /* welcome screen */
     .welcome {
       display: flex;
       flex-direction: column;
@@ -248,10 +239,7 @@
       padding: 2rem;
     }
 
-    .welcome-icon {
-      font-size: 2.5rem;
-      filter: grayscale(.3);
-    }
+    .welcome-icon { font-size: 2.5rem; filter: grayscale(.3); }
 
     .welcome h2 {
       font-family: 'JetBrains Mono', monospace;
@@ -259,11 +247,7 @@
       color: var(--text);
     }
 
-    .welcome p {
-      font-size: .85rem;
-      max-width: 340px;
-      line-height: 1.6;
-    }
+    .welcome p { font-size: .85rem; max-width: 340px; line-height: 1.6; }
 
     .quick-btns {
       display: flex;
@@ -286,7 +270,6 @@
     }
     .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* message bubble */
     .msg {
       display: flex;
       flex-direction: column;
@@ -320,16 +303,9 @@
       word-break: break-word;
     }
 
-    .msg.user .msg-bubble {
-      background: var(--user-bg);
-      border-color: var(--accent);
-    }
+    .msg.user .msg-bubble { background: var(--user-bg); border-color: var(--accent); }
+    .msg.bot  .msg-bubble { background: var(--bot-bg); }
 
-    .msg.bot .msg-bubble {
-      background: var(--bot-bg);
-    }
-
-    /* inline code */
     .msg-bubble code {
       font-family: 'JetBrains Mono', monospace;
       font-size: .82em;
@@ -339,7 +315,6 @@
       color: var(--accent3);
     }
 
-    /* code blocks */
     .msg-bubble pre {
       background: var(--code-bg);
       border: 1px solid var(--border);
@@ -372,7 +347,6 @@
     }
     .copy-btn:hover { background: var(--accent); color: var(--bg); }
 
-    /* typing indicator */
     .typing .msg-bubble {
       display: flex;
       align-items: center;
@@ -394,7 +368,6 @@
       30%           { transform: translateY(-5px); }
     }
 
-    /* ─── INPUT BAR ──────────────────────────────────────────── */
     .input-bar {
       padding: .85rem 1.25rem 1rem;
       background: var(--bg);
@@ -464,7 +437,6 @@
       max-width: 260px;
     }
 
-    /* ─── RESPONSIVE ─────────────────────────────────────────── */
     @media (max-width: 640px) {
       aside { display: none; }
       .messages { padding: 1rem .75rem; }
@@ -473,7 +445,6 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="logo">
     <div class="logo-icon">$_</div>
@@ -490,11 +461,9 @@
 
 <div class="layout">
 
-  <!-- SIDEBAR -->
   <aside>
     <div class="sidebar-label">Perfil</div>
-
-    <button class="profile-btn active" data-profile="default" onclick="setProfile(this)">
+    <button class="profile-btn active" data-profile="avancado" onclick="setProfile(this)">
       <span class="pip" style="background:#bd93f9"></span> Padrão
     </button>
     <button class="profile-btn" data-profile="iniciante" onclick="setProfile(this)">
@@ -514,7 +483,6 @@
     <button class="new-chat-btn" onclick="newChat()">+ Nova conversa</button>
   </aside>
 
-  <!-- CHAT -->
   <main>
     <div class="messages" id="messages">
       <div class="welcome" id="welcome">
@@ -553,13 +521,11 @@
 </div>
 
 <script>
-  // ─── STATE ────────────────────────────────────────────────
-  let sessionId   = null;
-  let profile     = 'default';
-  let isLoading   = false;
-  const API       = '';   // mesmo host
+  let sessionId = null;
+  let profile   = 'avancado';
+  let isLoading = false;
+  const API     = '';
 
-  // ─── INIT ─────────────────────────────────────────────────
   checkHealth();
   setInterval(checkHealth, 30000);
 
@@ -569,11 +535,12 @@
       const d = await r.json();
       const dot  = document.getElementById('statusDot');
       const text = document.getElementById('statusText');
-      if (d.ollama_connected) {
-        dot.className = 'status-dot ok';
+      // CORRIGIDO: campo correto é ollama_online (não ollama_connected)
+      if (d.ollama_online) {
+        dot.className  = 'status-dot ok';
         text.textContent = 'ollama online';
       } else {
-        dot.className = 'status-dot err';
+        dot.className  = 'status-dot err';
         text.textContent = 'ollama offline';
       }
     } catch {
@@ -581,33 +548,29 @@
       document.getElementById('statusText').textContent = 'api offline';
     }
 
-    // load model name
     try {
       const r = await fetch(`${API}/models`);
       const d = await r.json();
       if (d.models?.length) {
-        document.getElementById('modelName').textContent = d.models[0].name;
+        document.getElementById('modelName').textContent = d.default_model || d.models[0].name;
       }
     } catch {}
   }
 
-  // ─── THEME ────────────────────────────────────────────────
   const themeBtn = document.getElementById('themeBtn');
   themeBtn.addEventListener('click', () => {
-    const html  = document.documentElement;
+    const html   = document.documentElement;
     const isDark = html.dataset.theme === 'dark';
     html.dataset.theme   = isDark ? 'light' : 'dark';
-    themeBtn.textContent = isDark ? '🌙' : '☀️';
+    themeBtn.textContent = isDark ? '☀️' : '🌙';
   });
 
-  // ─── PROFILE ──────────────────────────────────────────────
   function setProfile(btn) {
     document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     profile = btn.dataset.profile;
   }
 
-  // ─── NEW CHAT ─────────────────────────────────────────────
   function newChat() {
     sessionId = null;
     document.getElementById('sessionDisplay').textContent = 'sessão: nova';
@@ -626,19 +589,16 @@
       </div>`;
   }
 
-  // ─── QUICK SEND ───────────────────────────────────────────
   function quickSend(text) {
     document.getElementById('inputMsg').value = text;
     sendMessage();
   }
 
-  // ─── TEXTAREA AUTORESIZE ──────────────────────────────────
   function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   }
 
-  // ─── KEY HANDLER ──────────────────────────────────────────
   function handleKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -646,24 +606,19 @@
     }
   }
 
-  // ─── SEND MESSAGE ─────────────────────────────────────────
   async function sendMessage() {
     const input = document.getElementById('inputMsg');
     const text  = input.value.trim();
     if (!text || isLoading) return;
 
-    // hide welcome
     const welcome = document.getElementById('welcome');
     if (welcome) welcome.remove();
 
-    // add user bubble
     appendMsg('user', text);
     input.value = '';
     input.style.height = 'auto';
 
-    // typing indicator
     const typingId = appendTyping();
-
     isLoading = true;
     document.getElementById('sendBtn').disabled = true;
 
@@ -671,7 +626,7 @@
       const res = await fetch(`${API}/chat`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
+        body: JSON.stringify({
           message:    text,
           session_id: sessionId,
           profile:    profile,
@@ -682,13 +637,18 @@
       removeTyping(typingId);
 
       if (!res.ok) {
-        appendMsg('bot', `⚠️ Erro: ${data.detail || 'Falha na requisição'}`);
+        // CORRIGIDO: extrai a mensagem de erro corretamente
+        const errMsg = data.detail || data.error || JSON.stringify(data);
+        appendMsg('bot', `⚠️ Erro: ${errMsg}`);
         return;
       }
 
-      sessionId = data.session_id;
-      document.getElementById('sessionDisplay').textContent =
-        `sessão: ${sessionId.slice(0, 8)}…`;
+      // CORRIGIDO: session_id pode ser null, só atualiza se existir
+      if (data.session_id) {
+        sessionId = data.session_id;
+        document.getElementById('sessionDisplay').textContent =
+          `sessão: ${sessionId.slice(0, 8)}…`;
+      }
 
       appendMsg('bot', data.response);
 
@@ -702,7 +662,6 @@
     }
   }
 
-  // ─── APPEND MESSAGE ───────────────────────────────────────
   function appendMsg(role, text) {
     const msgs = document.getElementById('messages');
     const div  = document.createElement('div');
@@ -720,7 +679,6 @@
     div.appendChild(bubble);
     msgs.appendChild(div);
 
-    // copy buttons for code blocks
     div.querySelectorAll('pre').forEach(pre => {
       const btn = document.createElement('button');
       btn.className = 'copy-btn';
@@ -738,17 +696,12 @@
     return div;
   }
 
-  // ─── FORMAT MESSAGE (markdown-lite) ──────────────────────
   function formatMessage(text) {
-    // fenced code blocks
     text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
       `<pre><code>${escHtml(code.trim())}</code></pre>`
     );
-    // inline code
     text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-    // bold
     text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    // newlines outside pre
     text = text.replace(/\n/g, '<br>');
     return text;
   }
@@ -757,7 +710,6 @@
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ─── TYPING INDICATOR ─────────────────────────────────────
   function appendTyping() {
     const msgs = document.getElementById('messages');
     const id   = 'typing-' + Date.now();

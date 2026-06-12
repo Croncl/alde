@@ -31,10 +31,8 @@ app.include_router(health.router, tags=["Status"])
 app.include_router(models.router, tags=["Modelos"])
 app.include_router(chat.router, tags=["Chat"])
 
-# Serve o frontend
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
 
 @app.get("/", tags=["Frontend"], include_in_schema=False)
 def frontend():

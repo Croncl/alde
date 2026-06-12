@@ -1,3 +1,4 @@
+# app/routes/health.py
 from fastapi import APIRouter
 from app.models import HealthResponse
 from app.services import ollama_service
@@ -6,10 +7,12 @@ router = APIRouter()
 
 
 @router.get("/health", response_model=HealthResponse, summary="Status da API")
-def health_check():
+async def health_check():
     """Verifica se a API e o Ollama estão operacionais."""
-    ollama_ok = ollama_service.is_ollama_available()
+    info = await ollama_service.health_check()
     return HealthResponse(
-        status="ok" if ollama_ok else "degraded",
-        ollama_connected=ollama_ok,
+        status="ok" if info["online"] else "degraded",
+        ollama_online=info["online"],
+        model_loaded=info.get("active_model"),
+        details={"version": info.get("version"), "error": info.get("error")},
     )

@@ -1,33 +1,129 @@
-SYSTEM_PROMPTS = {
-    "default": """Você é ALDE (Assistente Linux de Execução), um assistente técnico especializado em Linux.
-Responda sempre em português brasileiro.
-Seja direto, prático e preciso. Prefira exemplos de comandos reais.
-Quando sugerir comandos, use blocos de código.
-""",
+# knowledge_base/prompts_config.py
+"""
+Configuração centralizada de prompts e parâmetros de geração do ALDE.
+Ajustado para uso com qwen2.5-coder:1.5b (modelo leve).
+"""
 
-    "iniciante": """Você é ALDE, um assistente Linux amigável para iniciantes.
-Responda sempre em português brasileiro, usando linguagem simples e acessível.
-Explique o que cada comando faz antes de mostrá-lo.
-Dê avisos de segurança quando necessário (ex: uso de sudo, rm -rf).
-Use analogias do cotidiano para explicar conceitos técnicos.
-""",
+from __future__ import annotations
 
-    "avancado": """Você é ALDE, um assistente Linux para usuários avançados.
-Responda sempre em português brasileiro.
-Seja conciso e técnico. Assuma conhecimento prévio de shell, permissões e sistema de arquivos.
-Inclua flags e opções menos conhecidas quando relevante.
-Mostre alternativas e abordagens diferentes quando existirem.
-""",
+# ---------------------------------------------------------------------------
+# Hierarquia de fallback de modelos
+# ---------------------------------------------------------------------------
+MODEL_PREFERENCE: list[str] = [
+    "alde",               # modelo customizado via `ollama create alde -f Modelfile`
+    "qwen2.5-coder:1.5b", # modelo leve — prioridade quando recursos são limitados
+    "qwen3-coder-next",   # MoE pesado, só se disponível
+]
 
-    "debug": """Você é ALDE no modo debug/troubleshooting.
-Responda sempre em português brasileiro.
-Foque em diagnóstico sistemático: logs, processos, recursos, rede.
-Sempre sugira como verificar o problema antes de corrigi-lo.
-Inclua comandos para coletar informações do sistema (journalctl, dmesg, top, ss, lsof).
-Indique possíveis causas em ordem de probabilidade.
-""",
+DEFAULT_MODEL: str = MODEL_PREFERENCE[0]
+
+# ---------------------------------------------------------------------------
+# Parâmetros de geração ajustados para 1.5B
+# O modelo 1.5b tem janela de contexto real de ~32k tokens; usar 128k força
+# um swap enorme. Mantemos 32768 como valor seguro e eficiente.
+# ---------------------------------------------------------------------------
+GENERATION_PARAMS: dict = {
+    "temperature":    0.2,
+    "top_p":          0.85,
+    "top_k":          40,
+    "repeat_penalty": 1.1,
+    "num_ctx":        32768,   # seguro para qwen2.5-coder:1.5b
+    "num_predict":    -1,
+    "stop":           ["<|im_end|>", "<|endoftext|>"],
 }
 
+# Parâmetros sobrescritos por perfil de usuário
+PROFILE_OVERRIDES: dict[str, dict] = {
+    "iniciante": {"temperature": 0.3},
+    "avancado":  {"temperature": 0.1},
+    "debug":     {"temperature": 0.0},
+}
 
-def get_system_prompt(profile: str = "default") -> str:
-    return SYSTEM_PROMPTS.get(profile, SYSTEM_PROMPTS["default"])
+# ---------------------------------------------------------------------------
+# System prompt de sessão
+# ---------------------------------------------------------------------------
+SESSION_SYSTEM_PREFIX: str = (
+    "Você é o ALDE, assistente especialista em Linux, Docker e infraestrutura. "
+    "Responda SEMPRE em português do Brasil. "
+    "Blocos de código, comandos e nomes técnicos permanecem em inglês/ASCII. "
+    "Seja direto e objetivo — forneça comandos prontos para uso."
+)
+
+# ---------------------------------------------------------------------------
+# Templates de diagnóstico
+# ---------------------------------------------------------------------------
+DIAGNOSTIC_PROMPT_TEMPLATE: str = """Analise o log/erro abaixo e responda com:
+
+1. **Causa-raiz** — linha ou timestamp do primeiro erro
+2. **Processo/serviço** — nome e PID (se visível)
+3. **Sequência de eventos** — como o erro se propagou
+4. **Comandos de verificação** — para confirmar o diagnóstico
+5. **Solução** — passo a passo com comandos prontos
+6. **Prevenção** — como evitar recorrência
+
+Perfil: {profile}
+Contexto: {context}
+
+--- LOG ---
+{log_content}
+--- FIM ---
+"""
+
+DOCKER_DIAGNOSE_TEMPLATE: str = """Analise o problema Docker/Compose abaixo e forneça diagnóstico com comandos de verificação e solução.
+
+Problema: {problem}
+
+Saída docker inspect/logs:
+{docker_output}
+
+docker-compose.yml:
+{compose_content}
+"""
+
+HARDWARE_DIAGNOSE_TEMPLATE: str = """Diagnostique o problema de hardware/driver abaixo em sistema Debian/Ubuntu.
+
+Problema: {problem}
+
+Saída dos comandos de diagnóstico:
+{hw_output}
+
+Kernel: {kernel_version}
+Distribuição: {distro}
+"""
+
+# ---------------------------------------------------------------------------
+# Comandos de coleta de contexto sugeridos ao usuário
+# ---------------------------------------------------------------------------
+CONTEXT_COLLECTION_COMMANDS: dict[str, list[str]] = {
+    "hardware_geral": [
+        "inxi -Fxz 2>/dev/null || lshw -short 2>/dev/null",
+        "uname -a",
+        "lsb_release -a 2>/dev/null || cat /etc/os-release",
+    ],
+    "logs_sistema": [
+        "journalctl -b --no-pager -p err..emerg | tail -200",
+        "dmesg -T --level=err,crit,alert,emerg | tail -100",
+    ],
+    "rede": [
+        "ip -br addr",
+        "ip route show",
+        "ss -tulpn",
+        "resolvectl status 2>/dev/null || cat /etc/resolv.conf",
+    ],
+    "docker": [
+        "docker version --format '{{.Server.Version}}'",
+        "docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'",
+        "docker system df",
+        "docker network ls",
+    ],
+    "storage": [
+        "df -hT",
+        "lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT",
+        "cat /etc/fstab | grep -v '^#'",
+    ],
+    "processos": [
+        "ps auxf --sort=-%mem | head -30",
+        "free -h",
+        "uptime",
+    ],
+}

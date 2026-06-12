@@ -1,67 +1,159 @@
 {
-  "version": "1.0.0",
-  "categories": {
-    "arquivos": {
-      "descricao": "Gerenciamento de arquivos e diretórios",
-      "comandos": [
-        {"cmd": "ls -lah", "desc": "Lista arquivos com detalhes, incluindo ocultos e tamanhos legíveis"},
-        {"cmd": "find /path -name '*.log' -mtime +7", "desc": "Encontra arquivos .log com mais de 7 dias"},
-        {"cmd": "du -sh *", "desc": "Mostra tamanho de cada item no diretório atual"},
-        {"cmd": "rsync -avz src/ dest/", "desc": "Copia/sincroniza diretórios com progresso"},
-        {"cmd": "tar -czf backup.tar.gz /dir", "desc": "Compacta diretório em .tar.gz"}
-      ]
-    },
-    "rede": {
-      "descricao": "Diagnóstico e configuração de rede",
-      "comandos": [
-        {"cmd": "ip a", "desc": "Lista interfaces de rede e endereços IP"},
-        {"cmd": "ss -tulpn", "desc": "Mostra portas abertas e processos associados"},
-        {"cmd": "ping -c 4 8.8.8.8", "desc": "Testa conectividade com 4 pacotes"},
-        {"cmd": "traceroute google.com", "desc": "Rastreia rota até o destino"},
-        {"cmd": "curl -I https://site.com", "desc": "Verifica cabeçalhos HTTP de um site"},
-        {"cmd": "nmcli device status", "desc": "Status das interfaces de rede (NetworkManager)"}
-      ]
-    },
-    "processos": {
-      "descricao": "Gerenciamento de processos e recursos",
-      "comandos": [
-        {"cmd": "top", "desc": "Monitor de processos em tempo real"},
-        {"cmd": "htop", "desc": "Monitor interativo (mais visual que top)"},
-        {"cmd": "ps aux --sort=-%cpu | head -10", "desc": "Top 10 processos por CPU"},
-        {"cmd": "kill -9 PID", "desc": "Força encerramento de processo pelo PID"},
-        {"cmd": "systemctl status serviço", "desc": "Status de um serviço systemd"},
-        {"cmd": "journalctl -u serviço -f", "desc": "Logs em tempo real de um serviço"}
-      ]
-    },
-    "texto": {
-      "descricao": "Manipulação de texto",
-      "comandos": [
-        {"cmd": "grep -rn 'padrão' /dir", "desc": "Busca recursiva de padrão em arquivos"},
-        {"cmd": "sed -i 's/velho/novo/g' arquivo", "desc": "Substitui texto em arquivo"},
-        {"cmd": "awk '{print $1, $3}' arquivo", "desc": "Extrai colunas 1 e 3 do arquivo"},
-        {"cmd": "sort -u arquivo.txt", "desc": "Ordena e remove duplicatas"},
-        {"cmd": "wc -l arquivo.txt", "desc": "Conta linhas do arquivo"}
-      ]
-    },
-    "docker": {
-      "descricao": "Comandos Docker essenciais",
-      "comandos": [
-        {"cmd": "docker ps -a", "desc": "Lista todos os containers (incluindo parados)"},
-        {"cmd": "docker logs -f container", "desc": "Acompanha logs do container em tempo real"},
-        {"cmd": "docker exec -it container bash", "desc": "Abre shell no container"},
-        {"cmd": "docker system prune -a", "desc": "Remove imagens, containers e volumes não usados"},
-        {"cmd": "docker stats", "desc": "Uso de recursos dos containers em tempo real"}
-      ]
-    },
-    "git": {
-      "descricao": "Comandos Git frequentes",
-      "comandos": [
-        {"cmd": "git log --oneline --graph", "desc": "Histórico visual simplificado"},
-        {"cmd": "git stash", "desc": "Guarda mudanças temporariamente"},
-        {"cmd": "git diff HEAD~1", "desc": "Diff em relação ao commit anterior"},
-        {"cmd": "git reset --soft HEAD~1", "desc": "Desfaz último commit mantendo as mudanças"},
-        {"cmd": "git cherry-pick <hash>", "desc": "Aplica commit específico na branch atual"}
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Base de conhecimento estática do ALDE — comandos Linux, Docker e diagnóstico de hardware",
+    "last_updated": "2025-06",
+    "note": "Não utiliza embeddings nem banco vetorial. Serve como referência de contexto injetada via prompt quando necessário."
+  },
+  "linux_commands": {
+    "filesystem": [
+      { "cmd": "ls -lah --color=auto", "desc": "Lista arquivos com tamanho legível e permissões" },
+      { "cmd": "find /path -name '*.log' -mtime -7 -size +10M", "desc": "Localiza logs recentes maiores que 10MB" },
+      { "cmd": "du -sh /* 2>/dev/null | sort -rh | head -20", "desc": "Top 20 diretórios por uso de disco" },
+      { "cmd": "df -hT", "desc": "Espaço em disco por sistema de arquivos com tipo" },
+      { "cmd": "lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT,UUID", "desc": "Dispositivos de bloco com UUID" },
+      { "cmd": "stat /path/to/file", "desc": "Metadados completos de arquivo (inode, timestamps)" },
+      { "cmd": "inotifywait -m /path/to/dir", "desc": "Monitora mudanças em diretório em tempo real" }
+    ],
+    "processes": [
+      { "cmd": "ps auxf --sort=-%cpu | head -30", "desc": "Processos ordenados por CPU com hierarquia" },
+      { "cmd": "lsof -p <PID>", "desc": "Arquivos abertos por processo específico" },
+      { "cmd": "lsof -i :<PORT>", "desc": "Processo usando porta específica" },
+      { "cmd": "strace -p <PID> -e trace=network,file", "desc": "Rastreia syscalls de rede e arquivo de processo ativo" },
+      { "cmd": "fuser -v /path/to/file", "desc": "Processos usando arquivo ou diretório" },
+      { "cmd": "kill -l", "desc": "Lista todos os sinais disponíveis" },
+      { "cmd": "timeout 30 comando", "desc": "Executa comando com limite de tempo" }
+    ],
+    "network": [
+      { "cmd": "ip -br addr show", "desc": "Interfaces de rede e IPs de forma concisa" },
+      { "cmd": "ip route show table all", "desc": "Todas as tabelas de roteamento" },
+      { "cmd": "ss -tulpn", "desc": "Portas em escuta com processo responsável" },
+      { "cmd": "ss -s", "desc": "Resumo de conexões de rede" },
+      { "cmd": "tcpdump -i eth0 -nn -v host 8.8.8.8", "desc": "Captura tráfego para host específico" },
+      { "cmd": "nmap -sV -p- --open <IP>", "desc": "Scan completo de portas com versão de serviço" },
+      { "cmd": "ethtool eth0", "desc": "Informações de velocidade e duplex da interface" },
+      { "cmd": "resolvectl status", "desc": "Status do resolvedor DNS (systemd-resolved)" },
+      { "cmd": "curl -v --max-time 10 https://host", "desc": "Testa conectividade HTTP com verbose e timeout" }
+    ],
+    "logs": [
+      { "cmd": "journalctl -b --no-pager -p err..emerg", "desc": "Erros do boot atual, sem paginação" },
+      { "cmd": "journalctl -u <unit> -n 500 --no-pager", "desc": "Últimas 500 linhas de uma unit systemd" },
+      { "cmd": "journalctl --since '1 hour ago' -f", "desc": "Logs da última hora em tempo real" },
+      { "cmd": "journalctl -b -1 -p err", "desc": "Erros do boot anterior" },
+      { "cmd": "dmesg -T --level=err,crit,alert,emerg", "desc": "Mensagens críticas do kernel com timestamp legível" },
+      { "cmd": "dmesg -T -w", "desc": "Mensagens do kernel em tempo real" },
+      { "cmd": "grep -r 'ERROR\\|CRIT\\|FATAL' /var/log/ --include='*.log' -l", "desc": "Localiza arquivos de log com erros críticos" },
+      { "cmd": "zcat /var/log/syslog.*.gz | grep 'keyword'", "desc": "Pesquisa em logs comprimidos rotacionados" },
+      { "cmd": "awk '/START_DATE/,/END_DATE/' /var/log/syslog", "desc": "Extrai intervalo de tempo do log" }
+    ],
+    "hardware": [
+      { "cmd": "lshw -short -sanitize", "desc": "Inventário de hardware sem dados sensíveis" },
+      { "cmd": "lspci -vvv | grep -A5 'VGA\\|Network\\|USB'", "desc": "Detalhes de dispositivos PCI críticos" },
+      { "cmd": "lsusb -v 2>/dev/null | grep -E 'Bus|Device|ID|Product'", "desc": "Dispositivos USB com IDs" },
+      { "cmd": "dmidecode -t memory", "desc": "Informações de módulos de RAM (tipo, velocidade, slots)" },
+      { "cmd": "dmidecode -t processor", "desc": "Informações detalhadas do CPU" },
+      { "cmd": "smartctl -a /dev/sda", "desc": "Status SMART do disco (saúde, erros, temperatura)" },
+      { "cmd": "sensors 2>/dev/null || cat /sys/class/thermal/thermal_zone*/temp", "desc": "Temperaturas do sistema" },
+      { "cmd": "inxi -Fxz", "desc": "Resumo completo do sistema (CPU, RAM, disco, rede, GPU)" }
+    ],
+    "kernel_drivers": [
+      { "cmd": "lsmod | grep <module>", "desc": "Verifica se módulo do kernel está carregado" },
+      { "cmd": "modprobe <module>", "desc": "Carrega módulo do kernel" },
+      { "cmd": "modprobe -r <module>", "desc": "Remove módulo do kernel" },
+      { "cmd": "modinfo <module>", "desc": "Informações do módulo (versão, parâmetros, dependências)" },
+      { "cmd": "dkms status", "desc": "Status dos módulos DKMS instalados" },
+      { "cmd": "update-initramfs -u", "desc": "Atualiza initramfs após mudanças de módulos" },
+      { "cmd": "ls /sys/bus/usb/devices/", "desc": "Dispositivos USB reconhecidos pelo kernel" },
+      { "cmd": "udevadm monitor", "desc": "Monitora eventos de hardware em tempo real" },
+      { "cmd": "udevadm info /dev/sda", "desc": "Informações udev de dispositivo" }
+    ],
+    "performance": [
+      { "cmd": "iostat -xz 1 5", "desc": "Estatísticas de I/O de disco a cada 1s por 5 iterações" },
+      { "cmd": "vmstat 1 10", "desc": "Estatísticas de memória virtual, swap e CPU" },
+      { "cmd": "sar -u 1 10", "desc": "Uso de CPU por 10 segundos (requer sysstat)" },
+      { "cmd": "perf top", "desc": "Profiling em tempo real de funções do kernel/userspace" },
+      { "cmd": "sysctl -a | grep -E 'dirty|swappiness|overcommit'", "desc": "Parâmetros de memória do kernel" },
+      { "cmd": "nice -n 19 comando", "desc": "Executa comando com prioridade mínima de CPU" },
+      { "cmd": "ionice -c3 comando", "desc": "Executa comando com prioridade de I/O idle" }
+    ]
+  },
+  "docker": {
+    "containers": [
+      { "cmd": "docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Image}}'", "desc": "Lista containers com status e portas" },
+      { "cmd": "docker logs --tail 200 -f --timestamps <container>", "desc": "Logs com timestamps em tempo real" },
+      { "cmd": "docker inspect <container> | jq '.[0].State'", "desc": "Estado detalhado do container" },
+      { "cmd": "docker inspect <container> | jq '.[0].NetworkSettings.Networks'", "desc": "Redes e IPs do container" },
+      { "cmd": "docker stats --no-stream", "desc": "Snapshot de uso de CPU/RAM/IO de todos os containers" },
+      { "cmd": "docker exec -it <container> sh", "desc": "Shell interativo no container (usa sh se bash não disponível)" },
+      { "cmd": "docker top <container> aux", "desc": "Processos rodando dentro do container" },
+      { "cmd": "docker diff <container>", "desc": "Arquivos modificados no filesystem do container" }
+    ],
+    "images": [
+      { "cmd": "docker images --format 'table {{.Repository}}\\t{{.Tag}}\\t{{.Size}}' | sort -k3 -h", "desc": "Imagens ordenadas por tamanho" },
+      { "cmd": "docker history --no-trunc <image>", "desc": "Camadas da imagem com comandos completos" },
+      { "cmd": "docker buildx build --no-cache --progress=plain -t app:latest .", "desc": "Build com saída detalhada sem cache" },
+      { "cmd": "docker image inspect <image> | jq '.[0].Config.Env'", "desc": "Variáveis de ambiente definidas na imagem" }
+    ],
+    "networks": [
+      { "cmd": "docker network ls", "desc": "Lista todas as redes Docker" },
+      { "cmd": "docker network inspect <network>", "desc": "Detalhes da rede (subnet, containers conectados)" },
+      { "cmd": "docker network create --driver bridge --subnet 172.20.0.0/16 mynet", "desc": "Cria rede bridge com subnet personalizada" }
+    ],
+    "volumes": [
+      { "cmd": "docker volume ls", "desc": "Lista volumes Docker" },
+      { "cmd": "docker volume inspect <volume>", "desc": "Ponto de montagem e detalhes do volume" },
+      { "cmd": "docker system df", "desc": "Uso de disco por containers, imagens, volumes e build cache" },
+      { "cmd": "docker system prune -af --volumes", "desc": "⚠️ Remove TUDO não utilizado (containers, imagens, volumes, redes)" }
+    ],
+    "compose": [
+      { "cmd": "docker compose up -d --build", "desc": "Sobe serviços em background com rebuild" },
+      { "cmd": "docker compose logs -f --tail 100 <service>", "desc": "Logs de serviço específico em tempo real" },
+      { "cmd": "docker compose ps", "desc": "Status dos serviços do compose" },
+      { "cmd": "docker compose exec <service> sh", "desc": "Shell no container de um serviço" },
+      { "cmd": "docker compose config", "desc": "Valida e exibe compose.yml após resolução de variáveis" },
+      { "cmd": "docker compose down -v", "desc": "⚠️ Para e remove containers E volumes" }
+    ],
+    "best_practices": {
+      "dockerfile": [
+        "Use imagens base Alpine ou Distroless para menor superfície de ataque",
+        "Multi-stage build: stage de build separado do stage de runtime",
+        "Declare usuário não-root na última camada: USER 1001",
+        "Use COPY --chown=1001:1001 para evitar arquivos root no container",
+        "Ordene instruções de menos para mais mutável (COPY código por último)",
+        "Use .dockerignore para excluir .git, __pycache__, *.pyc, .env"
+      ],
+      "compose": [
+        "Sempre defina healthcheck com interval, timeout e retries",
+        "Use restart: unless-stopped para serviços críticos",
+        "Defina mem_limit e cpus para evitar starvation de recursos",
+        "Nunca passe secrets via environment — use Docker Secrets ou arquivos montados",
+        "Redes internas para comunicação entre containers, exponha apenas o necessário",
+        "Use named volumes para dados persistentes, nunca bind mounts em produção"
       ]
     }
+  },
+  "systemd": {
+    "unit_management": [
+      { "cmd": "systemctl status <unit>", "desc": "Status detalhado da unit com logs recentes" },
+      { "cmd": "systemctl list-units --failed", "desc": "Units que falharam" },
+      { "cmd": "systemctl list-units --type=service --state=running", "desc": "Serviços ativos no momento" },
+      { "cmd": "systemctl cat <unit>", "desc": "Exibe arquivo de configuração da unit" },
+      { "cmd": "systemctl edit <unit>", "desc": "Edita override da unit sem modificar arquivo original" },
+      { "cmd": "systemd-analyze blame", "desc": "Tempo de inicialização por unit (boot lento)" },
+      { "cmd": "systemd-analyze critical-chain", "desc": "Cadeia crítica de dependências no boot" }
+    ]
+  },
+  "security": {
+    "permissions": [
+      "Nunca use chmod 777 — use o mínimo necessário (644 para arquivos, 755 para diretórios)",
+      "Para executáveis de serviço: chmod 750 e chown root:<service_group>",
+      "Arquivos de configuração com senhas: chmod 600, chown <service_user>:root",
+      "Sockets Unix: chmod 660 com grupo dedicado ao invés de world-readable"
+    ],
+    "sudo": [
+      "Use sudoers com NOPASSWD apenas para comandos específicos e não interativos",
+      "Prefira grupos sudo granulares (ex: docker group) a sudo completo",
+      "Audite sudo com /var/log/auth.log ou journalctl _COMM=sudo"
+    ]
   }
 }
