@@ -3,8 +3,12 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.models import (
-    ChatRequest, ChatResponse, HistoryResponse,
-    LogAnalysisRequest, DockerDiagnosticRequest, HardwareDiagnosticRequest,
+    ChatRequest,
+    ChatResponse,
+    DockerDiagnosticRequest,
+    HardwareDiagnosticRequest,
+    HistoryResponse,
+    LogAnalysisRequest,
 )
 from app.services import chat_service
 
@@ -22,10 +26,12 @@ async def send_message(request: ChatRequest):
     - **stream**: Se True, retorna resposta como stream SSE
     """
     if request.stream:
+
         async def event_generator():
             async for chunk in chat_service.chat_stream(request):
                 yield f"data: {chunk}\n\n"
             yield "data: [DONE]\n\n"
+
         return StreamingResponse(event_generator(), media_type="text/event-stream")
 
     try:
@@ -58,7 +64,9 @@ async def diagnose_docker(request: DockerDiagnosticRequest):
         raise HTTPException(status_code=500, detail=f"Erro interno: {e}")
 
 
-@router.post("/diagnose/hardware", response_model=ChatResponse, summary="Diagnóstico de hardware/drivers")
+@router.post(
+    "/diagnose/hardware", response_model=ChatResponse, summary="Diagnóstico de hardware/drivers"
+)
 async def diagnose_hardware(request: HardwareDiagnosticRequest):
     """Diagnóstico estruturado de problemas de hardware e drivers."""
     try:

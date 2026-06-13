@@ -38,7 +38,7 @@ logger = logging.getLogger("alde.chat")
 # ---------------------------------------------------------------------------
 _session_store: dict[str, list[dict]] = defaultdict(list)
 MAX_HISTORY_ENTRIES: int = 40
-MAX_HISTORY_CHARS:   int = 80_000
+MAX_HISTORY_CHARS: int = 80_000
 
 # Limite de aviso de contexto (128k tokens ≈ 512_000 chars)
 CONTEXT_WARN_CHARS: int = 400_000
@@ -47,6 +47,7 @@ CONTEXT_WARN_CHARS: int = 400_000
 # ---------------------------------------------------------------------------
 # Utilitários internos
 # ---------------------------------------------------------------------------
+
 
 def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
@@ -72,7 +73,7 @@ def _build_messages_from_history(session_id: str, new_message: str) -> list[dict
 
 def _store_exchange(session_id: str, user_msg: str, assistant_msg: str) -> None:
     ts = time.time()
-    _session_store[session_id].append({"role": "user",      "content": user_msg,      "ts": ts})
+    _session_store[session_id].append({"role": "user", "content": user_msg, "ts": ts})
     _session_store[session_id].append({"role": "assistant", "content": assistant_msg, "ts": ts})
     _truncate_history(session_id)
 
@@ -84,7 +85,9 @@ def _warn_if_large_input(text: str, context: str = "") -> None:
         logger.warning(
             "Input grande detectado %s: %d chars (~%d tokens). "
             "Próximo do limite de contexto. Considere dividir o log.",
-            context, chars, tokens_est,
+            context,
+            chars,
+            tokens_est,
         )
     else:
         logger.debug("Input %s: %d chars (~%d tokens)", context, chars, tokens_est)
@@ -93,6 +96,7 @@ def _warn_if_large_input(text: str, context: str = "") -> None:
 # ---------------------------------------------------------------------------
 # Interface pública
 # ---------------------------------------------------------------------------
+
 
 async def chat(request: ChatRequest) -> ChatResponse:
     """Handler principal de chat. Suporta sessões com histórico."""
@@ -190,7 +194,7 @@ async def diagnose_docker(request: DockerDiagnosticRequest) -> ChatResponse:
 
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,                     # usa resolução automática
+        model=None,  # usa resolução automática
         profile=request.profile.value,
     )
 
@@ -234,6 +238,7 @@ async def diagnose_hardware(request: HardwareDiagnosticRequest) -> ChatResponse:
 # ---------------------------------------------------------------------------
 # Gerenciamento de histórico
 # ---------------------------------------------------------------------------
+
 
 def get_history(session_id: str) -> list[HistoryEntry]:
     entries = _session_store.get(session_id, [])

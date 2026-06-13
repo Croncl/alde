@@ -1,6 +1,8 @@
 
 # 🤖 Assistente Técnico Inteligente para Linux Debian/Ubuntu (ALDE)
 
+[![ALDE CI](https://github.com/Croncl/alde/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Croncl/alde/actions/workflows/ci-cd.yml)
+
 Um assistente virtual agêntico especializado em infraestrutura Linux, diagnósticos e ecossistema Docker. Ele utiliza a arquitetura **Ollama** + **FastAPI**, operando de forma 100% offline e local com automação unificada via **Docker Compose**.
 
 ## 📋 Tabela de Conteúdos
@@ -58,7 +60,7 @@ O ALDE adota uma hierarquia dinâmica de execução (fallback) configurada em ru
 ## 📦 Pré-requisitos
 - Sistema Operacional Linux (Debian 11+ ou Ubuntu 22.04+ recomendado).
 - Arquitetura **x86_64** (Processadores Intel Core i5 de 3ª geração ou superiores).
-- Memória RAM mínima de **16 GB** para comportar o modelo MoE e o ecossistema de containers de teste em paralelo.
+- Memória RAM mínima de **4 GB** para o modelo padrão (`qwen2.5-coder:1.5b`). 16 GB para usar o modelo MoE opcional (`qwen3-coder-next`).
 - Docker Engine instalado e o daemon do Docker ativo.
 
 ---
@@ -70,7 +72,7 @@ Se você deseja rodar os componentes de forma isolada em sua máquina para depur
 ### 1. Preparar o Ambiente Python 3.11 (Exemplo para sistemas com Python nativo divergente)
 ```bash
 sudo apt update && sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
-wget [https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz](https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz)
+wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz
 tar -xvf Python-3.11.9.tgz && cd Python-3.11.9
 ./configure --enable-optimizations
 make -j$(nproc)
@@ -85,7 +87,7 @@ cd /caminho/do/seu/projeto_alde
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip setuptools wheel
-pip install -r requirements.dev.txt
+pip install -r requirements-dev.txt
 
 ```
 
@@ -109,7 +111,9 @@ docker compose up -d
 
 ```
 
-> ⏳ **Nota sobre a primeira execução:** O container de setup irá detectar a inicialização do Ollama, baixar os gigabytes necessários do modelo base `qwen3-coder-next` e criar a persona customizada `alde`. Esse processo é executado uma única vez; as inicializações subsequentes são instantâneas utilizando os volumes persistidos.
+> ⏳ **Nota sobre a primeira execução:** O container de setup irá baixar o modelo base `qwen2.5-coder:1.5b` (~1 GB) e criar a persona customizada `alde`. Esse processo é executado uma única vez; as inicializações subsequentes são instantâneas. A **primeira resposta do chat demora 30s–2min** enquanto o modelo carrega na RAM — depois fica instantâneo.
+
+> 💻 **Requisitos de hardware:** 4 GB de RAM disponíveis é suficiente para o modelo padrão (`qwen2.5-coder:1.5b`). Para usar o modelo maior opcional (`qwen3-coder-next`), são necessários 16 GB.
 
 Para monitorar o progresso do download e compilação do modelo da IA:
 
@@ -129,24 +133,26 @@ cp .env.example .env
 
 ```
 
-Configurações recomendadas no seu `.env`:
+Variáveis disponíveis no `.env`:
 
 ```env
-OLLAMA_HOST=http://alde-ollama:11434
-OLLAMA_MODEL=qwen3-coder-next
-API_HOST=0.0.0.0
-API_PORT=8000
-API_TITLE="ALDE - Assistente Linux de Diagnóstico"
-API_VERSION="1.0.0"
-SYSTEM_PROMPT="Você é o ALDE. Responda estritamente focado em comandos verificados e segurança em sistemas Linux."
+# URL do Ollama — não altere ao usar Docker Compose (já definida pelo compose)
+OLLAMA_BASE_URL=http://localhost:11434
 
+# Porta da API (padrão: 8000). Mude se houver conflito com outro serviço.
+PORT=8000
 ```
+
+> **Modelo grande (opcional):** após o `docker compose up -d`, execute manualmente se quiser o modelo mais pesado:
+> ```bash
+> docker exec alde-ollama ollama pull qwen3-coder-next
+> ```
 
 ---
 
 ## 💻 Uso e Exemplos
 
-A documentação interativa OpenAPI do FastAPI fica disponível imediatamente em: `http://localhost:8000/docs`
+A documentação interativa OpenAPI do FastAPI fica disponível imediatamente em: `http://localhost:8000/api/docs`
 
 ### Exemplo de Diagnóstico de Logs via Terminal (`curl`)
 
@@ -171,8 +177,8 @@ curl http://localhost:8000/health
 # Listar os modelos carregados e disponíveis no motor local
 curl http://localhost:8000/models
 
-# Limpar o histórico de turnos da sessão atual
-curl -X DELETE http://localhost:8000/history
+# Limpar o histórico de uma sessão
+curl -X DELETE http://localhost:8000/history/{session_id}
 
 ```
 

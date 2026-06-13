@@ -10,9 +10,9 @@ from __future__ import annotations
 # Hierarquia de fallback de modelos
 # ---------------------------------------------------------------------------
 MODEL_PREFERENCE: list[str] = [
-    "alde",               # modelo customizado via `ollama create alde -f Modelfile`
-    "qwen2.5-coder:1.5b", # modelo leve — prioridade quando recursos são limitados
-    "qwen3-coder-next",   # MoE pesado, só se disponível
+    "alde",  # modelo customizado via `ollama create alde -f Modelfile`
+    "qwen2.5-coder:1.5b",  # modelo leve — prioridade quando recursos são limitados
+    "qwen3-coder-next",  # MoE pesado, só se disponível
 ]
 
 DEFAULT_MODEL: str = MODEL_PREFERENCE[0]
@@ -23,20 +23,20 @@ DEFAULT_MODEL: str = MODEL_PREFERENCE[0]
 # um swap enorme. Mantemos 32768 como valor seguro e eficiente.
 # ---------------------------------------------------------------------------
 GENERATION_PARAMS: dict = {
-    "temperature":    0.2,
-    "top_p":          0.85,
-    "top_k":          40,
+    "temperature": 0.2,
+    "top_p": 0.85,
+    "top_k": 40,
     "repeat_penalty": 1.1,
-    "num_ctx":        32768,   # seguro para qwen2.5-coder:1.5b
-    "num_predict":    -1,
-    "stop":           ["<|im_end|>", "<|endoftext|>"],
+    "num_ctx": 32768,  # seguro para qwen2.5-coder:1.5b
+    "num_predict": -1,
+    "stop": ["<|im_end|>", "<|endoftext|>"],
 }
 
 # Parâmetros sobrescritos por perfil de usuário
 PROFILE_OVERRIDES: dict[str, dict] = {
     "iniciante": {"temperature": 0.3},
-    "avancado":  {"temperature": 0.1},
-    "debug":     {"temperature": 0.0},
+    "avancado": {"temperature": 0.1},
+    "debug": {"temperature": 0.0},
 }
 
 # ---------------------------------------------------------------------------

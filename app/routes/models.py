@@ -1,6 +1,7 @@
 # app/routes/models.py
 from fastapi import APIRouter, HTTPException
-from app.models import ModelsResponse, ModelInfo
+
+from app.models import ModelInfo, ModelsResponse
 from app.services import ollama_service
 from knowledge_base.prompts_config import DEFAULT_MODEL
 
