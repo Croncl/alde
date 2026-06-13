@@ -197,19 +197,39 @@ curl -X DELETE http://localhost:8000/history/{session_id}
 
 ---
 
+## 🔍 Recuperação de Contexto (KB Retrieval)
+
+O ALDE enriquece automaticamente cada mensagem com comandos relevantes da `knowledge_base.json`, sem banco vetorial nem embeddings.
+
+**Como funciona:**
+1. A query é tokenizada (tokens alfanuméricos ≥ 3 chars, lowercase).
+2. Cada entrada do JSON recebe um score de sobreposição de tokens com `cmd + desc`.
+3. As 6 entradas com maior score são injetadas no system prompt antes de chamar o modelo.
+4. O JSON é carregado uma única vez na startup via `lru_cache`.
+
+**Exemplo:** `"como listar arquivos grandes?"` injeta automaticamente no contexto:
+```
+Comandos relevantes da base de conhecimento:
+  • `ls -lah --color=auto` — Lista arquivos com tamanho legível e permissões
+  • `find /path -name '*.log' -mtime -7 -size +10M` — Localiza logs recentes maiores que 10MB
+  • ...
+```
+
+---
+
+## 💾 Sessões em Memória
+
+O histórico de conversação fica em memória (`_session_store`). **Reiniciar a API apaga todo o histórico.** Para conversas com contexto, passe sempre o mesmo `session_id` nos requests enquanto o processo estiver rodando.
+
+---
+
 ## 🔄 CI/CD
 
-O projeto conta com uma pipeline automatizada via **GitHub Actions** (`.github/workflows/ci-cd.yml`) encarregada de executar:
+O projeto conta com uma pipeline automatizada via **GitHub Actions** (`.github/workflows/ci-cd.yml`) com 3 jobs:
 
-1. Checagem estática de tipos com o `mypy`.
-2. Linting e formatação estrita de código com o `ruff`.
-3. Execução da suíte de testes automatizados com o `pytest` coletando cobertura através do `pytest-cov`.
-4. Build e publicação da imagem Docker em caso de sucesso.
-
-Certifique-se de configurar os seguintes Secrets no seu repositório do GitHub:
-
-* `DOCKER_USERNAME`
-* `DOCKER_TOKEN`
+1. **lint** — Checagem estática de tipos (`mypy`) + linting/formatação (`ruff`).
+2. **test** — Suíte completa de testes com `pytest` e cobertura via `pytest-cov`.
+3. **docker-build** — Build da imagem Docker com cache GHA (sem publicação em registry).
 
 ---
 
@@ -226,8 +246,9 @@ projeto_alde/
 │   ├── routes/                # Endpoints RESTful da aplicação
 │   └── services/              # Integração direta com a API do Ollama
 ├── knowledge_base/
-│   ├── knowledge_base.json    # Dicionário estático de comandos de suporte
-│   └── prompts_config.py      # Configuração de fallbacks e parâmetros matemáticos (num_ctx)
+│   ├── knowledge_base.json    # Dicionário estático de comandos Linux/Docker/hardware
+│   ├── retrieval.py           # Busca por keyword e injeção de contexto no prompt
+│   └── prompts_config.py      # Configuração de fallbacks e parâmetros do modelo
 ├── tests/                     # Arquivos de teste do Pytest
 ├── docker-compose.yml         # Orquestração do Ollama, Setup e API
 ├── Dockerfile                 # Construção da imagem leve e segura da API (non-root)
