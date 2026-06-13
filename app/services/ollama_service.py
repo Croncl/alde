@@ -249,6 +249,7 @@ async def chat_completion(
     messages: list[dict[str, str]],
     model: str | None = None,
     profile: str = "avancado",
+    system: str | None = None,
 ) -> str:
     """
     Usa o endpoint /api/chat (mantém histórico via messages[]).
@@ -258,8 +259,12 @@ async def chat_completion(
         resolved_model = model or await resolve_model(client)
         options = _build_options(profile)
 
+        system_content = SESSION_SYSTEM_PREFIX
+        if system:
+            system_content = f"{SESSION_SYSTEM_PREFIX}\n\n{system}"
+
         if not messages or messages[0].get("role") != "system":
-            messages = [{"role": "system", "content": SESSION_SYSTEM_PREFIX}] + messages
+            messages = [{"role": "system", "content": system_content}] + messages
 
         payload = {
             "model": resolved_model,
