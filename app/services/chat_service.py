@@ -103,12 +103,25 @@ async def chat(request: ChatRequest) -> ChatResponse:
     _warn_if_large_input(request.message, "chat")
 
     try:
+        from knowledge_base.retrieval import retrieve
+
+        kb_context = retrieve(request.message)
+        if kb_context:
+            logger.info(
+                "KB retrieval: %d comandos injetados para query=%r",
+                kb_context.count("•"),
+                request.message[:60],
+            )
+        else:
+            logger.info("KB retrieval: sem match para query=%r", request.message[:60])
+
         if request.session_id:
             messages = _build_messages_from_history(request.session_id, request.message)
             response_text = await ollama_service.chat_completion(
                 messages=messages,
                 model=request.model,
                 profile=request.profile.value,
+                system=kb_context or None,
             )
             _store_exchange(request.session_id, request.message, response_text)
         else:
@@ -116,6 +129,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 prompt=request.message,
                 model=request.model,
                 profile=request.profile.value,
+                system=kb_context or None,
             )
 
         return ChatResponse(
