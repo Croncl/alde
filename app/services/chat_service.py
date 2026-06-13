@@ -106,6 +106,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
         from knowledge_base.retrieval import retrieve
 
         kb_context = retrieve(request.message)
+        if kb_context:
+            logger.info(
+                "KB retrieval: %d comandos injetados para query=%r",
+                kb_context.count("•"),
+                request.message[:60],
+            )
+        else:
+            logger.info("KB retrieval: sem match para query=%r", request.message[:60])
 
         if request.session_id:
             messages = _build_messages_from_history(request.session_id, request.message)
