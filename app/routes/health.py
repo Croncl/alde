@@ -1,5 +1,6 @@
 # app/routes/health.py
 from fastapi import APIRouter
+
 from app.models import HealthResponse
 from app.services import ollama_service
 

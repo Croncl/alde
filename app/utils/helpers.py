@@ -18,5 +18,5 @@ def truncate_history(history: list, max_turns: int = 10) -> list:
     Mantém as últimas `max_turns` trocas (user + assistant).
     """
     if len(history) > max_turns * 2:
-        return history[-(max_turns * 2):]
+        return history[-(max_turns * 2) :]
     return history

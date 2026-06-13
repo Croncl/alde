@@ -32,12 +32,13 @@ logger = logging.getLogger("alde.ollama")
 OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 
 _CONNECT_TIMEOUT: float = 5.0
-_READ_TIMEOUT:    float = 300.0   # logs longos podem demorar na 1ª geração
+_READ_TIMEOUT: float = 300.0  # logs longos podem demorar na 1ª geração
 
 
 # ---------------------------------------------------------------------------
 # Utilitários internos
 # ---------------------------------------------------------------------------
+
 
 def _build_options(profile: str) -> dict:
     """Mescla parâmetros base com overrides do perfil de usuário."""
@@ -75,6 +76,7 @@ async def resolve_model(client: httpx.AsyncClient) -> str:
 # ---------------------------------------------------------------------------
 # Interface pública
 # ---------------------------------------------------------------------------
+
 
 async def health_check() -> dict:
     """Verifica se o servidor Ollama está acessível e retorna o modelo ativo."""
@@ -147,16 +149,18 @@ async def generate(
             effective_system = f"{SESSION_SYSTEM_PREFIX}\n\n{system}"
 
         payload = {
-            "model":   resolved_model,
-            "prompt":  prompt,
-            "system":  effective_system,
-            "stream":  False,
+            "model": resolved_model,
+            "prompt": prompt,
+            "system": effective_system,
+            "stream": False,
             "options": options,
         }
 
         logger.debug(
             "generate() → model=%s profile=%s ctx=%d chars",
-            resolved_model, profile, len(prompt),
+            resolved_model,
+            profile,
+            len(prompt),
         )
 
         try:
@@ -205,10 +209,10 @@ async def generate_stream(
             effective_system = f"{SESSION_SYSTEM_PREFIX}\n\n{system}"
 
         payload = {
-            "model":   resolved_model,
-            "prompt":  prompt,
-            "system":  effective_system,
-            "stream":  True,
+            "model": resolved_model,
+            "prompt": prompt,
+            "system": effective_system,
+            "stream": True,
             "options": options,
         }
 
@@ -258,10 +262,10 @@ async def chat_completion(
             messages = [{"role": "system", "content": SESSION_SYSTEM_PREFIX}] + messages
 
         payload = {
-            "model":    resolved_model,
+            "model": resolved_model,
             "messages": messages,
-            "stream":   False,
-            "options":  options,
+            "stream": False,
+            "options": options,
         }
 
         try:
@@ -278,6 +282,4 @@ async def chat_completion(
         except httpx.ConnectError:
             raise RuntimeError(f"Ollama inacessível em {OLLAMA_BASE_URL}.")
         except httpx.HTTPStatusError as exc:
-            raise RuntimeError(
-                f"Ollama HTTP {exc.response.status_code}: {exc.response.text}"
-            )
+            raise RuntimeError(f"Ollama HTTP {exc.response.status_code}: {exc.response.text}")

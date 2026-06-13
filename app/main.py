@@ -1,9 +1,10 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from dotenv import load_dotenv
-import os
+from fastapi.staticfiles import StaticFiles
 
 from app.routes import chat, health, models
 
@@ -33,6 +34,7 @@ app.include_router(chat.router, tags=["Chat"])
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 @app.get("/", tags=["Frontend"], include_in_schema=False)
 def frontend():
