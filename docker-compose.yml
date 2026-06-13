@@ -20,10 +20,10 @@ services:
       - ollama
     entrypoint: /bin/sh
     command: >
-      -c "echo 'Aguardando o Ollama iniciar...';
-          while ! curl -s http://ollama:11434/api/tags > /dev/null; do sleep 2; done;
+      -c "export OLLAMA_HOST=http://ollama:11434;
+          echo 'Aguardando o Ollama iniciar...';
+          until ollama list > /dev/null 2>&1; do sleep 2; done;
           echo 'Ollama online. Baixando os modelos e criando o ALDE...';
-          ollama pull qwen3-coder-next;
           ollama pull qwen2.5-coder:1.5b;
           ollama create alde -f /tmp/project/Modelfile;
           echo 'Modelos configurados com sucesso!';"
@@ -36,7 +36,7 @@ services:
     container_name: alde-api-service
     restart: unless-stopped
     ports:
-      - "${PORT:-8000}:${PORT:-8000}"
+      - "${PORT:-8000}:8000"
     env_file:
       - .env
     environment:
