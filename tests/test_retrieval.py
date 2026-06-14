@@ -32,10 +32,10 @@ def test_retrieve_no_match_returns_empty():
 
 def test_retrieve_keyword_match_returns_block():
     with patch("knowledge_base.retrieval._load_entries", return_value=_FAKE_ENTRIES):
-        result = retrieve("listar arquivos disco")
+        # ✨ Query com palavras que aparecem na descrição para gerar score >= 2
+        result = retrieve("lista arquivos permissões")
     assert result.startswith("Comandos relevantes da base de conhecimento:")
     assert "ls -lah" in result
-
 
 def test_retrieve_docker_keyword_matches_docker_entry():
     with patch("knowledge_base.retrieval._load_entries", return_value=_FAKE_ENTRIES):
