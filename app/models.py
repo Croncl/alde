@@ -19,7 +19,7 @@ class UserProfile(str, Enum):
     """
     Perfil do usuário — controla profundidade da explicação, temperatura
     e system prompt específico.
-    
+
     ✨ ATUALIZADO: Agora inclui os perfis do frontend (padrao, infra, suporte, devops)
     mantendo compatibilidade com os perfis antigos (iniciante, avancado, debug).
     """
