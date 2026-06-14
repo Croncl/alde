@@ -19,28 +19,31 @@ DEFAULT_MODEL: str = MODEL_PREFERENCE[0]
 
 # ---------------------------------------------------------------------------
 # Parâmetros de geração ajustados para 1.5B
-# O modelo 1.5b tem janela de contexto real de ~32k tokens; usar 128k força
-# um swap enorme. Mantemos 32768 como valor seguro e eficiente.
 # ---------------------------------------------------------------------------
 GENERATION_PARAMS: dict = {
     "temperature": 0.2,
     "top_p": 0.85,
     "top_k": 40,
     "repeat_penalty": 1.1,
-    "num_ctx": 32768,  # seguro para qwen2.5-coder:1.5b
+    "num_ctx": 32768,
     "num_predict": -1,
     "stop": ["<|im_end|>", "<|endoftext|>"],
 }
 
 # Parâmetros sobrescritos por perfil de usuário
 PROFILE_OVERRIDES: dict[str, dict] = {
+    "padrao": {"temperature": 0.2},
+    "infra": {"temperature": 0.1},
+    "suporte": {"temperature": 0.3},
+    "devops": {"temperature": 0.15},
+    # Mantém compatibilidade com nomes antigos
     "iniciante": {"temperature": 0.3},
     "avancado": {"temperature": 0.1},
     "debug": {"temperature": 0.0},
 }
 
 # ---------------------------------------------------------------------------
-# System prompt de sessão
+# System prompt base de sessão
 # ---------------------------------------------------------------------------
 SESSION_SYSTEM_PREFIX: str = (
     "Você é o ALDE, assistente especialista em Linux, Docker e infraestrutura. "
@@ -48,6 +51,37 @@ SESSION_SYSTEM_PREFIX: str = (
     "Blocos de código, comandos e nomes técnicos permanecem em inglês/ASCII. "
     "Seja direto e objetivo — forneça comandos prontos para uso."
 )
+
+# ---------------------------------------------------------------------------
+# ✨ NOVO: System prompts específicos por perfil
+# ---------------------------------------------------------------------------
+PROFILE_SYSTEM_PROMPTS: dict[str, str] = {
+    "padrao": (
+        "Você é o ALDE no modo Padrão. "
+        "Forneça respostas equilibradas, claras e práticas. "
+        "Use os comandos da base de conhecimento quando relevantes."
+    ),
+    "infra": (
+        "Você é o ALDE no modo Infraestrutura e Redes. "
+        "Especialize-se em diagnóstico de kernel, hardware, interfaces de rede, "
+        "roteamento, DNS, firewall e logs de sistema. "
+        "Priorize comandos de baixo nível (ip, ss, dmesg, journalctl, lspci, lsmod). "
+        "Use os comandos da base de conhecimento como referência prioritária."
+    ),
+    "suporte": (
+        "Você é o ALDE no modo Suporte Técnico. "
+        "Forneça respostas didáticas com passo a passo claro para qualquer nível de usuário. "
+        "Explique o que cada comando faz antes de executá-lo. "
+        "Use linguagem acessível e evite jargões excessivos. "
+        "Use os comandos da base de conhecimento como referência."
+    ),
+    "devops": (
+        "Você é o ALDE no modo DevOps e Automação. "
+        "Especialize-se em Docker, docker-compose, shell scripts, CI/CD e boas práticas. "
+        "Priorize comandos idempotentes, seguros e com tratamento de erros. "
+        "Use os comandos da base de conhecimento como referência prioritária."
+    ),
+}
 
 # ---------------------------------------------------------------------------
 # Templates de diagnóstico

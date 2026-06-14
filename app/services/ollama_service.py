@@ -27,12 +27,10 @@ from knowledge_base.prompts_config import (
 
 logger = logging.getLogger("alde.ollama")
 
-# Lê a URL do ambiente para funcionar tanto local quanto dentro do Docker
-# docker-compose define: OLLAMA_BASE_URL=http://ollama:11434
 OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 
 _CONNECT_TIMEOUT: float = 5.0
-_READ_TIMEOUT: float = 300.0  # logs longos podem demorar na 1ª geração
+_READ_TIMEOUT: float = 300.0
 
 
 # ---------------------------------------------------------------------------
@@ -53,7 +51,8 @@ async def _get_installed_models(client: httpx.AsyncClient) -> list[str]:
         r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=_CONNECT_TIMEOUT)
         r.raise_for_status()
         return [m["name"] for m in r.json().get("models", [])]
-    except Exception:
+    except Exception as e:
+        logger.debug("Falha ao listar modelos instalados: %s", e)
         return []
 
 
@@ -93,6 +92,7 @@ async def health_check() -> dict:
         except httpx.ConnectError:
             return {"online": False, "error": f"Ollama não acessível em {OLLAMA_BASE_URL}"}
         except Exception as exc:
+            logger.error("Health check falhou: %s", exc)
             return {"online": False, "error": str(exc)}
 
 
@@ -127,26 +127,13 @@ async def generate(
 ) -> str:
     """
     Geração batch (não-streaming). Aguarda a resposta completa antes de retornar.
-
-    Args:
-        prompt:  Texto de entrada do usuário.
-        model:   Nome do modelo. None = resolução automática.
-        profile: Perfil do usuário para ajuste de parâmetros.
-        system:  System prompt adicional de sessão (concatenado ao do Modelfile).
-
-    Returns:
-        Texto de resposta gerado.
-
-    Raises:
-        RuntimeError: Se o Ollama retornar erro ou estiver inacessível.
     """
     async with httpx.AsyncClient() as client:
         resolved_model = model or await resolve_model(client)
         options = _build_options(profile)
 
-        effective_system = SESSION_SYSTEM_PREFIX
-        if system:
-            effective_system = f"{SESSION_SYSTEM_PREFIX}\n\n{system}"
+        # ✨ AJUSTE: Se system já contém SESSION_SYSTEM_PREFIX, não duplica
+        effective_system = system if system else SESSION_SYSTEM_PREFIX
 
         payload = {
             "model": resolved_model,
@@ -157,10 +144,11 @@ async def generate(
         }
 
         logger.debug(
-            "generate() → model=%s profile=%s ctx=%d chars",
+            "generate() → model=%s profile=%s ctx=%d chars system=%d chars",
             resolved_model,
             profile,
             len(prompt),
+            len(effective_system),
         )
 
         try:
@@ -215,6 +203,13 @@ async def generate_stream(
             "stream": True,
             "options": options,
         }
+
+        logger.debug(
+            "generate_stream() → model=%s profile=%s ctx=%d chars",
+            resolved_model,
+            profile,
+            len(prompt),
+        )
 
         try:
             async with client.stream(
@@ -272,6 +267,14 @@ async def chat_completion(
             "stream": False,
             "options": options,
         }
+
+        logger.debug(
+            "chat_completion() → model=%s profile=%s msgs=%d system=%d chars",
+            resolved_model,
+            profile,
+            len(messages),
+            len(system_content),
+        )
 
         try:
             r = await client.post(

@@ -16,8 +16,21 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class UserProfile(str, Enum):
-    """Perfil do usuário — controla profundidade da explicação e temperatura."""
+    """
+    Perfil do usuário — controla profundidade da explicação, temperatura
+    e system prompt específico.
+    
+    ✨ ATUALIZADO: Agora inclui os perfis do frontend (padrao, infra, suporte, devops)
+    mantendo compatibilidade com os perfis antigos (iniciante, avancado, debug).
+    """
 
+    # ✨ NOVOS: Perfis do frontend
+    PADRAO = "padrao"
+    INFRA = "infra"
+    SUPORTE = "suporte"
+    DEVOPS = "devops"
+
+    # Mantém compatibilidade com perfis antigos
     INICIANTE = "iniciante"
     AVANCADO = "avancado"
     DEBUG = "debug"
@@ -54,7 +67,7 @@ class ChatRequest(BaseModel):
         examples=["user-abc123"],
     )
     profile: UserProfile = Field(
-        default=UserProfile.AVANCADO,
+        default=UserProfile.PADRAO,  # ✨ MUDOU: de AVANCADO para PADRAO
         description="Perfil do usuário para ajuste de verbosidade e temperatura.",
     )
     model: str | None = Field(
@@ -103,7 +116,7 @@ class DockerDiagnosticRequest(BaseModel):
     )
     compose_content: str | None = Field(default=None, description="Conteúdo do docker-compose.yml")
     session_id: str | None = None
-    profile: UserProfile = UserProfile.AVANCADO
+    profile: UserProfile = UserProfile.DEVOPS  # ✨ MUDOU: de AVANCADO para DEVOPS
 
 
 class HardwareDiagnosticRequest(BaseModel):
@@ -116,7 +129,7 @@ class HardwareDiagnosticRequest(BaseModel):
     kernel_version: str | None = Field(default=None, examples=["6.1.0-21-amd64"])
     distro: str | None = Field(default=None, examples=["Debian GNU/Linux 12 (bookworm)"])
     session_id: str | None = None
-    profile: UserProfile = UserProfile.AVANCADO
+    profile: UserProfile = UserProfile.INFRA  # ✨ MUDOU: de AVANCADO para INFRA
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +193,7 @@ class HistoryResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Resposta de erro padronizada."""
+    """Resposta de erro padronizado."""
 
     error: str
     detail: str | None = None
