@@ -43,6 +43,7 @@ IMAGES_DIR = os.path.join(STATIC_DIR, "images")
 if os.path.exists(IMAGES_DIR):
     app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
 
+
 @app.get("/", tags=["Frontend"], include_in_schema=False)
 def frontend():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
