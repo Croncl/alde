@@ -37,6 +37,7 @@ def test_retrieve_keyword_match_returns_block():
     assert result.startswith("Comandos relevantes da base de conhecimento:")
     assert "ls -lah" in result
 
+
 def test_retrieve_docker_keyword_matches_docker_entry():
     with patch("knowledge_base.retrieval._load_entries", return_value=_FAKE_ENTRIES):
         result = retrieve("docker containers execução")
