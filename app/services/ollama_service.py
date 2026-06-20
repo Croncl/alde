@@ -77,6 +77,12 @@ async def resolve_model(client: httpx.AsyncClient) -> str:
 # ---------------------------------------------------------------------------
 
 
+async def get_resolved_model(model: str | None = None) -> str:
+    """Resolve o modelo a usar, criando um client temporário."""
+    async with httpx.AsyncClient() as client:
+        return model or await resolve_model(client)
+
+
 async def health_check() -> dict:
     """Verifica se o servidor Ollama está acessível e retorna o modelo ativo."""
     async with httpx.AsyncClient() as client:

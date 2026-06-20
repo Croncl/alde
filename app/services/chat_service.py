@@ -45,7 +45,8 @@ _session_store: dict[str, list[dict]] = defaultdict(list)
 MAX_HISTORY_ENTRIES: int = 40
 MAX_HISTORY_CHARS: int = 80_000
 
-CONTEXT_WARN_CHARS: int = 400_000
+# Aviso próximo ao limite real do modelo: num_ctx=32768 ≈ 128_000 chars
+CONTEXT_WARN_CHARS: int = 100_000
 
 
 # ---------------------------------------------------------------------------
@@ -168,12 +169,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
         # ✨ Constrói system prompt completo (base + perfil + KB)
         system_prompt = _build_system_prompt(request.profile.value, kb_context)
 
+        resolved_model = await ollama_service.get_resolved_model(request.model)
+
         if request.session_id:
             messages = _build_messages_from_history(request.session_id, request.message)
 
             response_text = await ollama_service.chat_completion(
                 messages=messages,
-                model=request.model,
+                model=resolved_model,
                 profile=request.profile.value,
                 system=system_prompt,
             )
@@ -181,14 +184,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
         else:
             response_text = await ollama_service.generate(
                 prompt=request.message,
-                model=request.model,
+                model=resolved_model,
                 profile=request.profile.value,
                 system=system_prompt,
             )
 
         return ChatResponse(
             response=response_text,
-            model_used=request.model or "alde",
+            model_used=resolved_model,
             session_id=request.session_id,
             tokens_estimated=_estimate_tokens(request.message + response_text),
         )
@@ -251,9 +254,10 @@ async def analyze_logs(request: LogAnalysisRequest) -> ChatResponse:
         _estimate_tokens(request.log_content),
     )
 
+    resolved_model = await ollama_service.get_resolved_model(None)
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,
+        model=resolved_model,
         profile=request.profile.value,
         system=system_prompt,
     )
@@ -267,7 +271,7 @@ async def analyze_logs(request: LogAnalysisRequest) -> ChatResponse:
 
     return ChatResponse(
         response=response_text,
-        model_used="alde",
+        model_used=resolved_model,
         session_id=request.session_id,
         tokens_estimated=_estimate_tokens(prompt + response_text),
     )
@@ -291,9 +295,10 @@ async def diagnose_docker(request: DockerDiagnosticRequest) -> ChatResponse:
     # ✨ Constrói system prompt com perfil
     system_prompt = _build_system_prompt(request.profile.value, "")
 
+    resolved_model = await ollama_service.get_resolved_model(None)
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,
+        model=resolved_model,
         profile=request.profile.value,
         system=system_prompt,
     )
@@ -303,7 +308,7 @@ async def diagnose_docker(request: DockerDiagnosticRequest) -> ChatResponse:
 
     return ChatResponse(
         response=response_text,
-        model_used="alde",
+        model_used=resolved_model,
         session_id=request.session_id,
         tokens_estimated=_estimate_tokens(prompt + response_text),
     )
@@ -328,9 +333,10 @@ async def diagnose_hardware(request: HardwareDiagnosticRequest) -> ChatResponse:
     # ✨ Constrói system prompt com perfil
     system_prompt = _build_system_prompt(request.profile.value, "")
 
+    resolved_model = await ollama_service.get_resolved_model(None)
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,
+        model=resolved_model,
         profile=request.profile.value,
         system=system_prompt,
     )
@@ -340,7 +346,7 @@ async def diagnose_hardware(request: HardwareDiagnosticRequest) -> ChatResponse:
 
     return ChatResponse(
         response=response_text,
-        model_used="alde",
+        model_used=resolved_model,
         session_id=request.session_id,
         tokens_estimated=_estimate_tokens(prompt + response_text),
     )

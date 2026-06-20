@@ -122,7 +122,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## 🐳 Inicialização Unificada (Produção / Docker)
+## 🐳 Inicialização Unificada (Docker Compose)
 
 O projeto está totalmente automatizado. Não é necessário baixar modelos ou configurar o Ollama manualmente. O Docker Compose gerencia o ciclo completo:
 
@@ -149,6 +149,14 @@ Para usar o modelo maior opcional:
 ```bash
 docker exec alde-ollama ollama pull qwen3-coder-next
 ```
+
+Quando o setup concluir, o projeto está pronto:
+
+| Interface | URL |
+|-----------|-----|
+| **Chat (aplicação)** | `http://localhost:8000` |
+| **API Docs (Swagger)** | `http://localhost:8000/api/docs` |
+| **Health check** | `http://localhost:8000/health` |
 
 ---
 
@@ -350,8 +358,8 @@ Limites configuráveis via `.env`:
 
 Pipeline automatizada via **GitHub Actions** (`.github/workflows/ci-cd.yml`) com três jobs em sequência:
 
-1. **`lint`** — Checagem estática de tipos (`mypy`) + linting e formatação (`ruff check` e `ruff format --check`).
-2. **`test`** — Suíte completa com `pytest` e cobertura via `pytest-cov`.
+1. **`lint`** — `ruff check` + `ruff format --check` + `mypy app/`.
+2. **`test`** — 23 testes com `pytest` (mocks isolam o Ollama — roda sem LLM instalado).
 3. **`docker-build`** — Build da imagem Docker com cache GHA (sem publicação em registry).
 
 Gatilhos: push em `main`, `feat/**` e `fix/**`; pull requests para `main`.
@@ -415,6 +423,15 @@ make docker     # Build da imagem Docker
 make logs       # Logs da API em tempo real
 make down       # Derruba o stack Docker
 ```
+
+---
+
+## 🎓 Contexto Acadêmico
+
+Projeto desenvolvido como trabalho prático para a disciplina **IMD0035 — MLOps** da Universidade Federal do Rio Grande do Norte (UFRN) / Instituto Metrópole Digital.
+
+- **Professor:** Adelson de Araujo
+- **Alunos:** Cristovão Lacerda Cronje · João Gilberto Neves Saraiva
 
 ---
 
