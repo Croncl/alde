@@ -26,8 +26,8 @@ Um assistente virtual agêntico especializado em infraestrutura Linux, diagnóst
 O **ALDE** (Assistente Linux de Diagnóstico e Execução) é um engenheiro DevOps sênior virtual focado em resolução de problemas, análise forense de logs e orquestração de containers. Ele roda localmente e expõe uma API RESTful robusta desenvolvida em **FastAPI**.
 
 ### Características
-- ✅ **Inteligência Avançada (MoE)** – Equipado com modelo de Mistura de Especialistas focado nativamente em recuperação de falhas de execução e análise agêntica.
-- ✅ **Janela de Contexto Massiva** – Capacidade nativa de processar até **256k tokens**, ideal para analisar logs extensos de sistemas (`journalctl`, `dmesg`).
+- ✅ **Modelo leve e eficiente** – Roda com `qwen2.5-coder:1.5b` (~1 GB) em qualquer máquina com 4 GB de RAM, sem GPU necessária.
+- ✅ **Janela de Contexto de 32k tokens** – Suficiente para analisar logs extensos de sistemas (`journalctl`, `dmesg`, `syslog`) em uma única requisição.
 - ✅ **Inicialização em um Único Comando** – O ecossistema orquestra o motor de IA, o setup do modelo customizado e a API automaticamente.
 - ✅ **Offline e Seguro** – Tráfego de dados estritamente local; operação segura rodando sob usuário não-root (`alde`) dentro do container.
 
@@ -40,7 +40,8 @@ O **ALDE** (Assistente Linux de Diagnóstico e Execução) é um engenheiro DevO
 | **Python** | 3.11 | Linguagem principal (⚠️ *Requisito estrito*: versões superiores como a 3.13 que acompanham distribuições como o Debian 13 exigem compilação manual do venv devido a travas de compilação do `pydantic-core` em Rust via PyO3). |
 | **FastAPI** | 0.111.0 | Framework web assíncrono |
 | **Ollama** | 0.6.2 | Gerenciador e runtime de LLMs locais |
-| **Qwen3-Coder-Next** | MoE | Modelo principal focado em código e automação CLI |
+| **qwen2.5-coder:1.5b** | 1.5B | Modelo padrão — leve, eficiente, roda com 4 GB RAM |
+| **qwen3-coder-next** | MoE (opcional) | Modelo pesado para hardware com 16+ GB RAM |
 | **Docker / Compose** | 24+ / 3.8+ | Containerização e orquestração do ecossistema |
 | **Uvicorn** | 0.30.1 | Servidor ASGI de produção |
 | **Pytest** | 8.2.2 | Framework de testes unitários e de integração |
@@ -51,9 +52,9 @@ O **ALDE** (Assistente Linux de Diagnóstico e Execução) é um engenheiro DevO
 ## 🧠 Arquitetura de Modelos
 O ALDE adota uma hierarquia dinâmica de execução (fallback) configurada em runtime, adaptando-se à disponibilidade do hardware local:
 
-1. **`alde`** (Modelo customizado gerado automaticamente via `Modelfile`)
-2. **`qwen3-coder-next`** (Prioritário: Arquitetura MoE, 3B parâmetros ativos por token. Fornece raciocínio profundo com consumo de processamento reduzido).
-3. **`qwen2.5-coder:1.5b`** (Fallback de contingência ultra leve para cenários de extrema restrição de hardware).
+1. **`alde`** — modelo customizado criado automaticamente via `Modelfile` (persona + parâmetros ajustados).
+2. **`qwen2.5-coder:1.5b`** — modelo base leve; fallback imediato se `alde` ainda não foi criado.
+3. **`qwen3-coder-next`** — modelo MoE pesado, opcional; só usado se disponível e com hardware suficiente.
 
 ---
 
@@ -100,7 +101,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## 🐳 Inicialização Unificada (Produção / Docker)
+## 🐳 Inicialização Unificada (Docker Compose)
 
 O projeto está totalmente automatizado. Você **não precisa** baixar modelos ou configurar o Ollama antes de iniciar. O Docker Compose gerencia o ciclo completo de orquestração.
 
@@ -121,6 +122,14 @@ Para monitorar o progresso do download e compilação do modelo da IA:
 docker logs -f alde-ollama-setup
 
 ```
+
+Quando o setup concluir, o projeto está pronto:
+
+| Interface | URL |
+|-----------|-----|
+| **Chat (aplicação)** | `http://localhost:8000` |
+| **API Docs (Swagger)** | `http://localhost:8000/api/docs` |
+| **Health check** | `http://localhost:8000/health` |
 
 ---
 
@@ -189,11 +198,14 @@ curl -X DELETE http://localhost:8000/history/{session_id}
 | Método | Endpoint | Descrição |
 | --- | --- | --- |
 | `GET` | `/` | Metadados do projeto e status do sistema |
-| `GET` | `/health` | Verificação de integridade (usada pelo Healthcheck do Docker) |
-| `POST` | `/chat` | Envio de prompts de diagnóstico ou requisições de código |
-| `GET` | `/history` | Retorna o histórico de conversação em memória |
-| `DELETE` | `/history` | Limpa a memória de contexto da sessão |
-| `GET` | `/models` | Consulta as tags de modelos prontas no Ollama local |
+| `GET` | `/health` | Verificação de integridade (Ollama online + modelo carregado) |
+| `POST` | `/chat` | Chat com o assistente ALDE |
+| `POST` | `/analyze/logs` | Análise forense de logs longos |
+| `POST` | `/diagnose/docker` | Diagnóstico de problemas Docker/Compose |
+| `POST` | `/diagnose/hardware` | Diagnóstico de hardware e drivers |
+| `GET` | `/history/{session_id}` | Retorna o histórico de conversação da sessão |
+| `DELETE` | `/history/{session_id}` | Limpa o histórico da sessão |
+| `GET` | `/models` | Consulta os modelos disponíveis no Ollama local |
 
 ---
 
@@ -227,9 +239,9 @@ O histórico de conversação fica em memória (`_session_store`). **Reiniciar a
 
 O projeto conta com uma pipeline automatizada via **GitHub Actions** (`.github/workflows/ci-cd.yml`) com 3 jobs:
 
-1. **lint** — Checagem estática de tipos (`mypy`) + linting/formatação (`ruff`).
-2. **test** — Suíte completa de testes com `pytest` e cobertura via `pytest-cov`.
-3. **docker-build** — Build da imagem Docker com cache GHA (sem publicação em registry).
+1. **lint** — `ruff check` + `ruff format --check` + `mypy app/`.
+2. **test** — 23 testes com `pytest` (mocks isolam o Ollama — roda sem LLM instalado).
+3. **docker-build** — Build da imagem com `docker/build-push-action` e cache GHA (sem publicação em registry).
 
 ---
 
@@ -254,9 +266,18 @@ projeto_alde/
 ├── Dockerfile                 # Construção da imagem leve e segura da API (non-root)
 ├── Modelfile                  # Definição e System Prompt da Persona ALDE no Ollama
 ├── requirements.txt           # Dependências de produção
-└── requirements.dev.txt       # Dependências de desenvolvimento e teste
+└── requirements-dev.txt       # Dependências de desenvolvimento e teste
 
 ```
+
+---
+
+## 🎓 Contexto Acadêmico
+
+Projeto desenvolvido como trabalho prático para a disciplina **IMD0035 — MLOps** da Universidade Federal do Rio Grande do Norte (UFRN) / Instituto Metrópole Digital.
+
+- **Professor:** Adelson de Araujo
+- **Alunos:** Cristovão Lacerda Cronje · João Gilberto Neves Saraiva
 
 ---
 

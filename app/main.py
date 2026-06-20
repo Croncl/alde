@@ -11,7 +11,7 @@ from app.routes import chat, health, models
 load_dotenv()
 
 app = FastAPI(
-    title="ALDE – Assistente Linux de Execução",
+    title="ALDE – Assistente Linux de Diagnóstico e Execução",
     description=(
         "API para assistente técnico Linux com modelos Ollama locais. "
         "Funciona offline, em máquinas com 4GB RAM."

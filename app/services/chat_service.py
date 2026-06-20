@@ -40,8 +40,8 @@ _session_store: dict[str, list[dict]] = defaultdict(list)
 MAX_HISTORY_ENTRIES: int = 40
 MAX_HISTORY_CHARS: int = 80_000
 
-# Limite de aviso de contexto (128k tokens ≈ 512_000 chars)
-CONTEXT_WARN_CHARS: int = 400_000
+# Aviso próximo ao limite real do modelo: num_ctx=32768 ≈ 128_000 chars
+CONTEXT_WARN_CHARS: int = 100_000
 
 
 # ---------------------------------------------------------------------------
@@ -115,11 +115,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
         else:
             logger.info("KB retrieval: sem match para query=%r", request.message[:60])
 
+        resolved_model = await ollama_service.get_resolved_model(request.model)
+
         if request.session_id:
             messages = _build_messages_from_history(request.session_id, request.message)
             response_text = await ollama_service.chat_completion(
                 messages=messages,
-                model=request.model,
+                model=resolved_model,
                 profile=request.profile.value,
                 system=kb_context or None,
             )
@@ -127,14 +129,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
         else:
             response_text = await ollama_service.generate(
                 prompt=request.message,
-                model=request.model,
+                model=resolved_model,
                 profile=request.profile.value,
                 system=kb_context or None,
             )
 
         return ChatResponse(
             response=response_text,
-            model_used=request.model or "alde",
+            model_used=resolved_model,
             session_id=request.session_id,
             tokens_estimated=_estimate_tokens(request.message + response_text),
         )
@@ -147,12 +149,17 @@ async def chat_stream(request: ChatRequest) -> AsyncGenerator[str, None]:
     """Versão streaming do chat. Yields chunks de texto."""
     _warn_if_large_input(request.message, "chat_stream")
 
+    from knowledge_base.retrieval import retrieve
+
+    kb_context = retrieve(request.message)
+
     full_response: list[str] = []
 
     async for chunk in ollama_service.generate_stream(
         prompt=request.message,
         model=request.model,
         profile=request.profile.value,
+        system=kb_context or None,
     ):
         full_response.append(chunk)
         yield chunk
@@ -177,9 +184,10 @@ async def analyze_logs(request: LogAnalysisRequest) -> ChatResponse:
         _estimate_tokens(request.log_content),
     )
 
+    resolved_model = await ollama_service.get_resolved_model(None)
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,
+        model=resolved_model,
         profile=request.profile.value,
     )
 
@@ -192,7 +200,7 @@ async def analyze_logs(request: LogAnalysisRequest) -> ChatResponse:
 
     return ChatResponse(
         response=response_text,
-        model_used="alde",
+        model_used=resolved_model,
         session_id=request.session_id,
         tokens_estimated=_estimate_tokens(prompt + response_text),
     )
@@ -206,9 +214,10 @@ async def diagnose_docker(request: DockerDiagnosticRequest) -> ChatResponse:
         compose_content=request.compose_content or "Não fornecido",
     )
 
+    resolved_model = await ollama_service.get_resolved_model(None)
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,  # usa resolução automática
+        model=resolved_model,
         profile=request.profile.value,
     )
 
@@ -217,7 +226,7 @@ async def diagnose_docker(request: DockerDiagnosticRequest) -> ChatResponse:
 
     return ChatResponse(
         response=response_text,
-        model_used="alde",
+        model_used=resolved_model,
         session_id=request.session_id,
         tokens_estimated=_estimate_tokens(prompt + response_text),
     )
@@ -232,9 +241,10 @@ async def diagnose_hardware(request: HardwareDiagnosticRequest) -> ChatResponse:
         distro=request.distro or "Desconhecido",
     )
 
+    resolved_model = await ollama_service.get_resolved_model(None)
     response_text = await ollama_service.generate(
         prompt=prompt,
-        model=None,
+        model=resolved_model,
         profile=request.profile.value,
     )
 
@@ -243,7 +253,7 @@ async def diagnose_hardware(request: HardwareDiagnosticRequest) -> ChatResponse:
 
     return ChatResponse(
         response=response_text,
-        model_used="alde",
+        model_used=resolved_model,
         session_id=request.session_id,
         tokens_estimated=_estimate_tokens(prompt + response_text),
     )
