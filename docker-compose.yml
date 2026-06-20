@@ -1,5 +1,5 @@
 services:
-  # --- SERVIÇO 1: OLLAMA (O Motor da IA) ---
+  # --- SERVIÇO 1: OLLAMA (Motor da IA) ---
   ollama:
     image: ollama/ollama:latest
     container_name: alde-ollama
@@ -7,28 +7,98 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     ports:
-      - "11434:11434"
+      - "${OLLAMA_PORT:-11434}:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-5m}
+      - OLLAMA_DEBUG=${OLLAMA_DEBUG:-false}
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      alde-network:
+        aliases:
+          - ollama  # ✨ Garante que o hostname seja resolvido
 
-  # --- SERVIÇO 2: COMPILADOR DO MODELO (Roda uma vez e morre) ---
+  # --- SERVIÇO 2: SETUP DO MODELO (Roda uma vez e sai) ---
   ollama-setup:
     image: ollama/ollama:latest
     container_name: alde-ollama-setup
     volumes:
       - ollama_data:/root/.ollama
-      - .:/tmp/project
+      - ./Modelfile:/tmp/Modelfile:ro
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
     entrypoint: /bin/sh
     command: >
-      -c "export OLLAMA_HOST=http://ollama:11434;
-          echo 'Aguardando o Ollama iniciar...';
-          until ollama list > /dev/null 2>&1; do sleep 2; done;
-          echo 'Ollama online. Baixando os modelos e criando o ALDE...';
-          ollama pull qwen2.5-coder:1.5b;
-          ollama create alde -f /tmp/project/Modelfile;
-          echo 'Modelos configurados com sucesso!';"
+      -c "
+        set -e;
+        echo '=== Setup do ALDE ===';
+        
+        # ✨ AGUARDA DNS RESOLVER (máximo 60 segundos)
+        echo 'Aguardando resolução DNS do hostname ollama...';
+        for i in \$(seq 1 30); do
+          if getent hosts ollama > /dev/null 2>&1; then
+            echo '✓ DNS resolvido: ollama';
+            break;
+          fi;
+          echo \"  Tentativa \$\$i/30...\";
+          sleep 2;
+        done;
+        
+        # ✨ VERIFICA CONECTIVIDADE
+        echo 'Verificando conectividade com Ollama...';
+        for i in \$(seq 1 10); do
+          if curl -sf http://ollama:11434/api/version > /dev/null 2>&1; then
+            echo '✓ Ollama acessível em http://ollama:11434';
+            break;
+          fi;
+          echo \"  Aguardando Ollama... tentativa \$\$i/10\";
+          sleep 3;
+        done;
+        
+        # ✨ VERIFICA SE MODELO JÁ EXISTE
+        echo 'Verificando modelos existentes...';
+        if ollama list 2>/dev/null | grep -q 'alde'; then
+          echo '✓ Modelo ALDE já existe. Pulando download.';
+          ollama list;
+          echo '=== Setup concluído (modelo já existia) ===';
+          exit 0;
+        fi;
+        
+        # ✨ BAIXA E CRIA O MODELO
+        echo 'Baixando qwen2.5-coder:1.5b...';
+        ollama pull qwen2.5-coder:1.5b || {
+          echo '✗ Falha ao baixar modelo. Verifique conexão com internet.';
+          exit 1;
+        };
+        
+        echo 'Criando modelo ALDE...';
+        ollama create alde -f /tmp/Modelfile || {
+          echo '✗ Falha ao criar modelo ALDE.';
+          exit 1;
+        };
+        
+        echo '✓ Modelos configurados com sucesso!';
+        ollama list;
+        echo '=== Setup concluído ===';
+      "
+    restart: "no"
+    networks:
+      - alde-network
 
-  # --- SERVIÇO 3: SUA API FASTAPI (A Aplicação) ---
+  # --- SERVIÇO 3: API FASTAPI (Aplicação Principal) ---
   alde-api:
     build:
       context: .
@@ -42,9 +112,29 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
     depends_on:
+      ollama:
+        condition: service_healthy
       ollama-setup:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - alde-network
 
 volumes:
   ollama_data:
     driver: local
+
+networks:
+  alde-network:
+    driver: bridge
+    name: alde-network

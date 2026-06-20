@@ -4,43 +4,58 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ALDE – Assistente Linux</title>
+  <link rel="icon" type="image/png" href="images/alde_thumb.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
+    /* ─── DARK THEME ─────────────────────────────────────────────────────────── */
     :root[data-theme="dark"] {
-      --bg:        #282a36;
-      --bg-panel:  #21222c;
-      --bg-input:  #191a21;
-      --border:    #44475a;
-      --text:      #f8f8f2;
-      --text-dim:  #6272a4;
-      --accent:    #bd93f9;
-      --accent2:   #50fa7b;
-      --accent3:   #ff79c6;
-      --warn:      #ffb86c;
-      --error:     #ff5555;
-      --user-bg:   #44475a;
-      --bot-bg:    #21222c;
-      --code-bg:   #191a21;
-      --scrollbar: #44475a;
+      --bg:           #14151c;
+      --bg-panel:     #1a1b25;
+      --bg-input:     #0f1018;
+      --border:       #2a2d3e;
+      --border-glow:  #d4e03a33;
+      --text:         #e8e9f0;
+      --text-dim:     #555a7a;
+      --accent:       #d4e03a;   /* glowing eye yellow-green */
+      --accent-dim:   #a0aa2a;
+      --accent2:      #50fa7b;
+      --accent3:      #8be9fd;
+      --warn:         #ffb86c;
+      --error:        #ff5555;
+      --user-bg:      #1e2030;
+      --bot-bg:       #1a1b25;
+      --code-bg:      #0f1018;
+      --scrollbar:    #2a2d3e;
+      --logo-img:           url('images/ALDE_both_themes.png');
+      --eye-glow:           0 0 18px #d4e03a99, 0 0 40px #d4e03a44;
+      --bg-mascot-opacity:  0.66;
     }
 
+    /* ─── LIGHT THEME ────────────────────────────────────────────────────────── */
     :root[data-theme="light"] {
-      --bg:        #f8f8f2;
-      --bg-panel:  #ffffff;
-      --bg-input:  #f1f1f1;
-      --border:    #d0d0d0;
-      --text:      #282a36;
-      --text-dim:  #6272a4;
-      --accent:    #7c3aed;
-      --accent2:   #16a34a;
-      --accent3:   #db2777;
-      --warn:      #d97706;
-      --error:     #dc2626;
-      --user-bg:   #ede9fe;
-      --bot-bg:    #ffffff;
-      --code-bg:   #f1f1f1;
-      --scrollbar: #d0d0d0;
+      --bg:           #f0ede6;
+      --bg-panel:     #faf8f4;
+      --bg-input:     #e8e4db;
+      --border:       #ccc8be;
+      --border-glow:  #8c7a3a33;
+      --text:         #2a2620;
+      --text-dim:     #8a8070;
+      --accent:       #7a6830;   /* fedora hat warm brown */
+      --accent-dim:   #5a4e24;
+      --accent2:      #2d6a3f;
+      --accent3:      #1a5a7a;
+      --warn:         #b06010;
+      --error:        #b02020;
+      --user-bg:      #e0d8c8;
+      --bot-bg:       #faf8f4;
+      --code-bg:      #e4e0d6;
+      --scrollbar:    #ccc8be;
+      --logo-img:           url('images/ALDE_both_themes.png');
+      --eye-glow:           0 0 8px #8c7a3a66;
+      --bg-mascot-opacity:  0.67;
+      --card-bg: rgba(250, 248, 244, 0.25); /* 55% opaco, 45% transparente */
+
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,43 +67,72 @@
       height: 100dvh;
       display: flex;
       flex-direction: column;
-      transition: background .2s, color .2s;
+      transition: background .25s, color .25s;
     }
 
+    /* ─── HEADER ─────────────────────────────────────────────────────────────── */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 1.25rem;
-      height: 52px;
+      height: 56px;
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+      position: relative;
+    }
+
+    /* subtle top accent line that echoes the glowing eyes */
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 10%, var(--accent) 40%, var(--accent) 60%, transparent 90%);
+      opacity: .55;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: .5rem;
+      gap: .65rem;
       font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
       font-size: .95rem;
       letter-spacing: .04em;
+      user-select: none;
     }
 
-    .logo-icon {
-      width: 28px; height: 28px;
-      background: var(--accent);
-      border-radius: 6px;
-      display: grid;
-      place-items: center;
-      font-size: .7rem;
-      color: var(--bg);
-      font-weight: 700;
+    /* mascot thumbnail as logo icon */
+    .logo-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-image: url('images/alde_thumb.png');
+      background-size: cover;
+      background-position: center;
+      border: 1.5px solid var(--accent);
+      box-shadow: var(--eye-glow);
+      flex-shrink: 0;
+      transition: box-shadow .3s;
     }
 
-    .logo span { color: var(--accent); }
+    .logo:hover .logo-avatar {
+      box-shadow: var(--eye-glow), 0 0 0 3px var(--border-glow);
+    }
 
+    .logo-text {
+      display: flex;
+      align-items: baseline;
+      gap: .3rem;
+    }
+
+    .logo-text .name { color: var(--accent); }
+    .logo-text .sep  { color: var(--text-dim); }
+    .logo-text .sub  { color: var(--text-dim); font-size: .78rem; font-weight: 400; }
+
+    /* ─── HEADER CONTROLS ────────────────────────────────────────────────────── */
     .header-controls {
       display: flex;
       align-items: center;
@@ -99,68 +143,90 @@
       display: flex;
       align-items: center;
       gap: .35rem;
-      font-size: .72rem;
+      font-size: .7rem;
       font-family: 'JetBrains Mono', monospace;
       color: var(--text-dim);
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: .2rem .65rem;
+      padding: .22rem .7rem;
     }
 
     .status-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--text-dim);
-      transition: background .3s;
+      transition: background .3s, box-shadow .3s;
     }
 
-    .status-dot.ok  { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+    .status-dot.ok  {
+      background: var(--accent);
+      box-shadow: var(--eye-glow);
+    }
     .status-dot.err { background: var(--error); }
 
     .theme-btn {
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: .3rem .55rem;
+      padding: .3rem .6rem;
       cursor: pointer;
-      font-size: .85rem;
+      font-size: .88rem;
       color: var(--text);
       transition: border-color .15s, background .15s;
+      line-height: 1;
     }
     .theme-btn:hover { border-color: var(--accent); background: var(--bg); }
 
+    /* ─── LAYOUT ─────────────────────────────────────────────────────────────── */
     .layout {
       display: flex;
       flex: 1;
       overflow: hidden;
     }
 
+    /* ─── SIDEBAR ────────────────────────────────────────────────────────────── */
     aside {
-      width: 220px;
+      width: 236px;
       background: var(--bg-panel);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       padding: 1rem .75rem;
-      gap: .5rem;
+      gap: .3rem;
       flex-shrink: 0;
     }
 
+    /* mascot watermark in sidebar */
+    .sidebar-mascot {
+      width: 100%;
+      height: 120px;
+      background-image: var(--logo-img);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+      opacity: .18;
+      pointer-events: none;
+      flex-shrink: 0;
+      margin-top: auto;
+      transition: background-image .3s;
+    }
+
     .sidebar-label {
-      font-size: .65rem;
+      font-size: .62rem;
       font-family: 'JetBrains Mono', monospace;
-      letter-spacing: .08em;
+      letter-spacing: .1em;
       color: var(--text-dim);
       text-transform: uppercase;
-      padding: .25rem .5rem;
+      padding: .3rem .5rem;
+      margin-top: .3rem;
     }
 
     .profile-btn {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: .5rem;
-      padding: .45rem .6rem;
+      padding: .5rem .6rem;
       border-radius: 7px;
       border: 1px solid transparent;
       background: transparent;
@@ -170,6 +236,7 @@
       font-family: 'Inter', sans-serif;
       transition: background .12s, border-color .12s;
       text-align: left;
+      flex-direction: column;
     }
 
     .profile-btn:hover { background: var(--bg); border-color: var(--border); }
@@ -180,101 +247,268 @@
       color: var(--accent);
     }
 
+    .profile-btn .profile-header {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      font-weight: 500;
+    }
+
     .profile-btn .pip {
       width: 8px; height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
+    .profile-btn.active .pip {
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    .profile-btn .profile-desc {
+      font-size: .69rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+      padding-left: 1.15rem;
+    }
+
+    .profile-btn.active .profile-desc { color: var(--accent); opacity: .7; }
+
     .sidebar-divider {
       height: 1px;
       background: var(--border);
-      margin: .25rem 0;
+      margin: .35rem 0;
     }
 
     .new-chat-btn {
-      margin-top: auto;
       padding: .5rem;
       border-radius: 7px;
       border: 1px solid var(--border);
       background: transparent;
       color: var(--text-dim);
       cursor: pointer;
-      font-size: .8rem;
-      font-family: 'Inter', sans-serif;
-      transition: color .12s, border-color .12s;
+      font-size: .78rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: .03em;
+      transition: color .12s, border-color .12s, background .12s;
     }
-    .new-chat-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .new-chat-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--bg);
+    }
 
+    /* ─── MAIN ───────────────────────────────────────────────────────────────── */
     main {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      /* position: relative already set above for ::before pseudo */
     }
 
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 1.5rem 1.25rem;
+      padding: 1.5rem 1.5rem;
       display: flex;
       flex-direction: column;
       gap: 1rem;
       scroll-behavior: smooth;
     }
 
-    .messages::-webkit-scrollbar { width: 5px; }
+    .messages::-webkit-scrollbar { width: 4px; }
     .messages::-webkit-scrollbar-track { background: transparent; }
     .messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 99px; }
 
+    /* ─── MAIN AREA — mascot as full background ─────────────────────────────── */
+    main {
+      position: relative;
+    }
+
+    	
+	/* ── MASCOTE NO FUNDO DO CHAT ─────────────────────────── */
+	main::before {
+  	content: '';
+  	position: absolute;
+  	inset: 0;
+  	background-image: var(--logo-img);
+  	background-size: 200% auto; /* Metade da largura (2 imagens lado a lado) */
+  	background-repeat: no-repeat;
+  	background-position: right center; /* Tema escuro: mostra imagem da direita */
+  	opacity: var(--bg-mascot-opacity);
+  	pointer-events: none;
+  	z-index: 0;
+  	transition: background-image .3s, opacity .3s;
+	
+  	/* ── FADING NAS BORDAS (elipse vertical) ─────────────── */
+  	-webkit-mask-image: radial-gradient(ellipse 45% 80% at center, black 30%, transparent 75%);
+          	mask-image: radial-gradient(ellipse 45% 80% at center, black 30%, transparent 75%);
+	}
+	
+	/* Tema claro: mostra a imagem da esquerda */
+	:root[data-theme="light"] main::before {
+  	background-position: left center;
+	}
+	
+
+	/* ── MASCOTE NA SIDEBAR ───────────────────────────────── */
+	.sidebar-mascot {
+  	width: 100%;
+  	height: 120px;
+  	background-image: var(--logo-img);
+  	background-size: 200% auto;
+  	background-repeat: no-repeat;
+  	background-position: right center; /* Tema escuro: direita */
+  	opacity: 0.70;
+  	pointer-events: none;
+  	flex-shrink: 0;
+  	margin-top: auto;
+  	transition: background-image .3s, background-position .3s;
+	
+  	/* ── FADING NAS BORDAS (elipse vertical ajustada) ───── */
+  	-webkit-mask-image: radial-gradient(ellipse 60% 90% at center, black 30%, transparent 80%);
+          	mask-image: radial-gradient(ellipse 60% 90% at center, black 30%, transparent 80%);
+	}
+	
+	/* Tema claro na sidebar: mostra a imagem da esquerda */
+	:root[data-theme="light"] .sidebar-mascot {
+  	background-position: left center;
+	}
+	
+    /* messages and input sit above the background */
+    .messages,
+    .input-bar {
+      position: relative;
+      z-index: 1;
+    }
+
+     /* ─── WELCOME SCREEN ─────────────────────────────────────────────────────── */
     .welcome {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       flex: 1;
-      gap: 1rem;
-      color: var(--text-dim);
+      gap: 1.1rem;
       text-align: center;
-      padding: 2rem;
+      padding: 3rem; /* Aumentado de 2rem para dar mais respiro nas bordas da tela */
     }
 
-    .welcome-icon { font-size: 2.5rem; filter: grayscale(.3); }
+    
+    /* ── 1. O BALÃO (Fundo, borda, sombra) ─────────────────────────────── */
+    .welcome-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem; 
+      padding: 2.5rem 3rem; 
+      
+      /* Usa a variável de transparência que definimos no topo */
+      background: var(--card-bg); 
+      
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(4px); 
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,.06), inset 0 0 0 1px rgba(0,0,0,0.05);
+      
+      max-width: 700px; 
+      width: 90%; 
+      animation: floatIn .45s ease both;
+    }
+
+    /* ─── 2. O TEXTO E OS BOTÕES DENTRO DO BALÃO (Contraste Dark) ───────── */
+    :root[data-theme="dark"] .welcome-card p,
+    :root[data-theme="dark"] .welcome-card .quick-btn {
+      color: #8084a0; /* Texto e botões bem mais claros */
+    }
+
+    /* Mantém a cor de destaque quando passa o mouse no botão */
+    :root[data-theme="dark"] .welcome-card .quick-btn:hover {
+      color: var(--accent); 
+    }
+     /* ✨ CONTRASTE APENAS NO BALÃO DE BOAS-VINDAS E SEUS BOTÕES (LIGHT) */
+    :root[data-theme="light"] .welcome-card p {
+      color: #4a453e; /* Descrição um pouco mais escura que o padrão para ler melhor */
+    }
+
+    :root[data-theme="light"] .welcome-card .quick-btn {
+      color: var(--text); /* ✨ Usa a cor principal (bem escura) para ter contraste total no fundo claro */
+    }
+
+    /* Mantém o efeito de hover dos botões intacto */
+    :root[data-theme="light"] .welcome-card .quick-btn:hover {
+      color: var(--accent); 
+    }
+ 
+ 
+      /* ✨ ESPAÇAMENTO: Ocupa mais espaço na tela */
+      max-width: 700px; /* Aumentado de 420px */
+      width: 90%; /* Garante que não estoure em telas pequenas/celulares */
+      
+      animation: floatIn .45s ease both;
+    }
+
 
     .welcome h2 {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
+      font-size: 1.45rem; /* Aumentado um pouquinho o título */
       color: var(--text);
+      letter-spacing: .02em;
     }
 
-    .welcome p { font-size: .85rem; max-width: 340px; line-height: 1.6; }
+    .welcome h2 span { color: var(--accent); }
 
+    .welcome p {
+      font-size: .9rem; /* Texto um pouco maior para leitura melhor */
+      color: var(--text-dim);
+      max-width: 500px; /* Texto ocupa mais largura */
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    /* Botões de atalho em linha única e responsivos */
     .quick-btns {
       display: flex;
-      flex-wrap: wrap;
-      gap: .5rem;
+      flex-wrap: nowrap; /* ✨ IMPÕE UMA ÚNICA LINHA (não empilha mais) */
+      gap: .50rem; 
       justify-content: center;
       margin-top: .5rem;
+      width: 100%; /* Ocupa toda a largura disponível dentro do balão */
+      max-width: 100%; /* Remove a limitação de 550px que tínhamos antes */
     }
 
     .quick-btn {
-      padding: .35rem .75rem;
-      border-radius: 6px;
+      flex: 1; /* ✨ MÁGICA: Faz todos os botões dividirem o espaço igualmente */
+      padding: .4rem .5rem; /* Reduzi um pouco o padding horizontal para caber melhor */
+      border-radius: 8px;
       border: 1px solid var(--border);
-      background: var(--bg-panel);
-      color: var(--text);
+      background: color-mix(in srgb, var(--bg-panel) 60%, transparent);
+      color: #e0e4f0; /* Mantendo o contraste claro que ajustamos antes */
       cursor: pointer;
-      font-size: .78rem;
+      font-size: .72rem; 
       font-family: 'JetBrains Mono', monospace;
-      transition: border-color .12s, color .12s;
+      transition: border-color .12s, color .12s, background .12s;
+      
+      /*  IMPÕE QUE O TEXTO NÃO QUEBRE PARA OUTRA LINHA */
+      white-space: nowrap; 
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis; /* Se a tela for minúscula, corta com "..." */
     }
-    .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+    
+    .quick-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+    }
 
+    /* ─── MESSAGES ───────────────────────────────────────────────────────────── */
     .msg {
       display: flex;
       flex-direction: column;
       gap: .3rem;
-      max-width: 780px;
+      max-width: 800px;
       animation: fadeUp .2s ease;
     }
 
@@ -287,32 +521,55 @@
     .msg.bot  { align-self: flex-start; align-items: flex-start; }
 
     .msg-label {
-      font-size: .65rem;
+      font-size: .63rem;
       font-family: 'JetBrains Mono', monospace;
       color: var(--text-dim);
-      letter-spacing: .05em;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+    }
+
+    /* tiny eye icon before ALDE label */
+    .msg.bot .msg-label::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: var(--eye-glow);
+      flex-shrink: 0;
     }
 
     .msg-bubble {
-      padding: .7rem 1rem;
+      padding: .72rem 1rem;
       border-radius: 10px;
-      font-size: .88rem;
-      line-height: 1.65;
+      font-size: .875rem;
+      line-height: 1.68;
       border: 1px solid var(--border);
       white-space: pre-wrap;
       word-break: break-word;
     }
 
-    .msg.user .msg-bubble { background: var(--user-bg); border-color: var(--accent); }
-    .msg.bot  .msg-bubble { background: var(--bot-bg); }
+    .msg.user .msg-bubble {
+      background: var(--user-bg);
+      border-color: var(--border);
+    }
+
+    .msg.bot .msg-bubble {
+      background: var(--bot-bg);
+      border-color: var(--border);
+    }
 
     .msg-bubble code {
       font-family: 'JetBrains Mono', monospace;
-      font-size: .82em;
+      font-size: .81em;
       background: var(--code-bg);
       padding: .1em .35em;
       border-radius: 4px;
       color: var(--accent3);
+      border: 1px solid var(--border);
     }
 
     .msg-bubble pre {
@@ -329,7 +586,8 @@
       background: none;
       padding: 0;
       color: var(--accent2);
-      font-size: .83rem;
+      font-size: .82rem;
+      border: none;
     }
 
     .copy-btn {
@@ -338,8 +596,8 @@
       background: var(--border);
       border: none;
       border-radius: 4px;
-      padding: .15rem .45rem;
-      font-size: .65rem;
+      padding: .15rem .5rem;
+      font-size: .63rem;
       font-family: 'JetBrains Mono', monospace;
       color: var(--text-dim);
       cursor: pointer;
@@ -347,6 +605,7 @@
     }
     .copy-btn:hover { background: var(--accent); color: var(--bg); }
 
+    /* ─── TYPING ─────────────────────────────────────────────────────────────── */
     .typing .msg-bubble {
       display: flex;
       align-items: center;
@@ -357,29 +616,31 @@
     .dot {
       width: 7px; height: 7px;
       border-radius: 50%;
-      background: var(--text-dim);
+      background: var(--accent);
       animation: bounce .9s infinite;
+      box-shadow: 0 0 5px var(--accent);
     }
     .dot:nth-child(2) { animation-delay: .15s; }
     .dot:nth-child(3) { animation-delay: .3s; }
 
     @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); }
-      30%           { transform: translateY(-5px); }
+      0%, 60%, 100% { transform: translateY(0); opacity: 1; }
+      30%           { transform: translateY(-5px); opacity: .7; }
     }
 
+    /* ─── INPUT BAR ──────────────────────────────────────────────────────────── */
     .input-bar {
-      padding: .85rem 1.25rem 1rem;
+      padding: .85rem 1.5rem 1rem;
       background: var(--bg);
       border-top: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: .5rem;
+      gap: .45rem;
     }
 
     .input-row {
       display: flex;
-      gap: .6rem;
+      gap: .55rem;
       align-items: flex-end;
     }
 
@@ -388,44 +649,48 @@
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: .65rem .9rem;
+      padding: .65rem .95rem;
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      font-size: .88rem;
+      font-size: .875rem;
       resize: none;
       min-height: 44px;
       max-height: 160px;
       line-height: 1.5;
-      transition: border-color .15s;
+      transition: border-color .15s, box-shadow .15s;
       outline: none;
     }
 
-    textarea:focus { border-color: var(--accent); }
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--border-glow);
+    }
     textarea::placeholder { color: var(--text-dim); }
 
     .send-btn {
       width: 44px; height: 44px;
       border-radius: 10px;
-      border: none;
+      border: 1px solid var(--accent-dim);
       background: var(--accent);
       color: var(--bg);
-      font-size: 1.1rem;
+      font-size: 1rem;
       cursor: pointer;
       display: grid;
       place-items: center;
       flex-shrink: 0;
-      transition: opacity .15s, transform .1s;
+      transition: opacity .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 0 10px var(--border-glow);
     }
 
-    .send-btn:hover  { opacity: .85; }
+    .send-btn:hover  { opacity: .85; box-shadow: var(--eye-glow); }
     .send-btn:active { transform: scale(.95); }
-    .send-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .send-btn:disabled { opacity: .3; cursor: not-allowed; box-shadow: none; }
 
     .input-meta {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: .7rem;
+      font-size: .68rem;
       color: var(--text-dim);
       font-family: 'JetBrains Mono', monospace;
     }
@@ -434,12 +699,20 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 260px;
+      max-width: 240px;
     }
 
+    #profileDisplay { color: var(--accent); }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       aside { display: none; }
-      .messages { padding: 1rem .75rem; }
+      .messages { padding: 1rem .9rem; }
+      .input-bar { padding: .7rem .9rem .85rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
     }
   </style>
 </head>
@@ -447,15 +720,19 @@
 
 <header>
   <div class="logo">
-    <div class="logo-icon">$_</div>
-    ALDE <span>·</span> Assistente Linux
+    <div class="logo-avatar" title="ALDE"></div>
+    <div class="logo-text">
+      <span class="name">ALDE</span>
+      <span class="sep">·</span>
+      <span class="sub">Assistente Linux</span>
+    </div>
   </div>
   <div class="header-controls">
     <div class="status-pill" id="statusPill">
       <div class="status-dot" id="statusDot"></div>
       <span id="statusText">verificando…</span>
     </div>
-    <button class="theme-btn" id="themeBtn" title="Alternar tema">🌙</button>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">☀️</button>
   </div>
 </header>
 
@@ -463,37 +740,57 @@
 
   <aside>
     <div class="sidebar-label">Perfil</div>
-    <button class="profile-btn active" data-profile="avancado" onclick="setProfile(this)">
-      <span class="pip" style="background:#bd93f9"></span> Padrão
+
+    <button class="profile-btn active" data-profile="padrao" onclick="setProfile(this)">
+      <div class="profile-header">
+        <span class="pip" style="background:var(--accent)"></span> Padrão
+      </div>
+      <div class="profile-desc">Generalista — respostas equilibradas</div>
     </button>
-    <button class="profile-btn" data-profile="iniciante" onclick="setProfile(this)">
-      <span class="pip" style="background:#50fa7b"></span> Iniciante
+
+    <button class="profile-btn" data-profile="infra" onclick="setProfile(this)">
+      <div class="profile-header">
+        <span class="pip" style="background:#8be9fd"></span> Infra e Redes
+      </div>
+      <div class="profile-desc">Kernel, hardware, rede, logs de sistema</div>
     </button>
-    <button class="profile-btn" data-profile="avancado" onclick="setProfile(this)">
-      <span class="pip" style="background:#ffb86c"></span> Avançado
+
+    <button class="profile-btn" data-profile="suporte" onclick="setProfile(this)">
+      <div class="profile-header">
+        <span class="pip" style="background:#50fa7b"></span> Suporte Técnico
+      </div>
+      <div class="profile-desc">Passo a passo, linguagem didática</div>
     </button>
-    <button class="profile-btn" data-profile="debug" onclick="setProfile(this)">
-      <span class="pip" style="background:#ff5555"></span> Debug
+
+    <button class="profile-btn" data-profile="devops" onclick="setProfile(this)">
+      <div class="profile-header">
+        <span class="pip" style="background:#ffb86c"></span> DevOps e Automação
+      </div>
+      <div class="profile-desc">Docker, CI/CD, shell scripts</div>
     </button>
 
     <div class="sidebar-divider"></div>
     <div class="sidebar-label">Modelo</div>
-    <div id="modelName" style="font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);padding:.25rem .5rem">—</div>
+    <div id="modelName" style="font-size:.73rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);padding:.25rem .5rem">—</div>
 
-    <button class="new-chat-btn" onclick="newChat()">+ Nova conversa</button>
+    <button class="new-chat-btn" onclick="newChat()">+ nova conversa</button>
+
+    <!-- mascot watermark, bottom of sidebar -->
+    <div class="sidebar-mascot" aria-hidden="true"></div>
   </aside>
 
   <main>
     <div class="messages" id="messages">
       <div class="welcome" id="welcome">
-        <div class="welcome-icon">🐧</div>
-        <h2>Olá, sou o ALDE</h2>
-        <p>Seu assistente técnico Linux. Pergunte sobre comandos, rede, processos, Docker, Git e mais.</p>
-        <div class="quick-btns">
-          <button class="quick-btn" onclick="quickSend('como listar arquivos por tamanho?')">ls por tamanho</button>
-          <button class="quick-btn" onclick="quickSend('como ver portas abertas no sistema?')">portas abertas</button>
-          <button class="quick-btn" onclick="quickSend('como matar um processo pelo nome?')">matar processo</button>
-          <button class="quick-btn" onclick="quickSend('como verificar uso de disco?')">uso de disco</button>
+        <div class="welcome-card">
+          <h2>Olá, sou o <span>ALDE</span></h2>
+          <p id="welcomeDesc">Selecione um perfil ao lado e faça sua pergunta sobre Linux, Docker, redes ou automação.</p>
+          <div class="quick-btns" id="quickBtns">
+            <button class="quick-btn" onclick="quickSend('como listar arquivos por tamanho?')">ls por tamanho</button>
+            <button class="quick-btn" onclick="quickSend('como ver portas abertas no sistema?')">portas abertas</button>
+            <button class="quick-btn" onclick="quickSend('como matar um processo pelo nome?')">matar processo</button>
+            <button class="quick-btn" onclick="quickSend('como verificar uso de disco?')">uso de disco</button>
+          </div>
         </div>
       </div>
     </div>
@@ -507,12 +804,11 @@
           onkeydown="handleKey(event)"
           oninput="autoResize(this)"
         ></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">
-          ➤
-        </button>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">➤</button>
       </div>
       <div class="input-meta">
         <span class="session-id" id="sessionDisplay">sessão: nova</span>
+        <span id="profileDisplay">perfil: padrão</span>
         <span>Enter para enviar · Shift+Enter nova linha</span>
       </div>
     </div>
@@ -522,10 +818,54 @@
 
 <script>
   let sessionId = null;
-  let profile   = 'avancado';
+  let profile   = 'padrao';
   let isLoading = false;
   const API     = '';
 
+  const PROFILE_CONFIG = {
+    padrao: {
+      label: 'padrão',
+      desc: 'Selecione um perfil ao lado e faça sua pergunta sobre Linux, Docker, redes ou automação.',
+      quickBtns: [
+        { label: 'ls por tamanho',  query: 'como listar arquivos por tamanho?' },
+        { label: 'portas abertas',  query: 'como ver portas abertas no sistema?' },
+        { label: 'matar processo',  query: 'como matar um processo pelo nome?' },
+        { label: 'uso de disco',    query: 'como verificar uso de disco?' },
+      ],
+    },
+    infra: {
+      label: 'infra e redes',
+      desc: 'Modo Infraestrutura e Redes — diagnóstico de kernel, hardware, interfaces e logs de sistema.',
+      quickBtns: [
+        { label: 'ip das interfaces',   query: 'como listar todas as interfaces de rede e seus IPs?' },
+        { label: 'rotas do sistema',    query: 'como ver a tabela de roteamento completa?' },
+        { label: 'logs de erro kernel', query: 'como filtrar apenas erros críticos do kernel com dmesg?' },
+        { label: 'driver de hardware',  query: 'como verificar se um driver está carregado no kernel?' },
+      ],
+    },
+    suporte: {
+      label: 'suporte técnico',
+      desc: 'Modo Suporte Técnico — respostas didáticas com passo a passo claro para qualquer nível.',
+      quickBtns: [
+        { label: 'serviço não inicia',  query: 'um serviço systemd não está iniciando, o que verifico primeiro?' },
+        { label: 'sem espaço em disco', query: 'o disco está cheio, como libero espaço passo a passo?' },
+        { label: 'usuário sem acesso',  query: 'um usuário não consegue fazer login, como diagnostico?' },
+        { label: 'rede sem conexão',    query: 'a interface de rede não conecta, como verifico o problema?' },
+      ],
+    },
+    devops: {
+      label: 'devops',
+      desc: 'Modo DevOps e Automação — Docker, docker-compose, shell scripts e boas práticas de CI/CD.',
+      quickBtns: [
+        { label: 'container saindo',    query: 'meu container para sozinho com exit code 137, qual a causa?' },
+        { label: 'script idempotente',  query: 'como escrever um shell script idempotente e seguro com set -euo pipefail?' },
+        { label: 'healthcheck compose', query: 'como configurar um healthcheck correto no docker-compose.yml?' },
+        { label: 'limpar docker',       query: 'como limpar imagens, volumes e containers parados com segurança?' },
+      ],
+    },
+  };
+
+  /* ─── HEALTH CHECK ──────────────────────────────────────────────────────── */
   checkHealth();
   setInterval(checkHealth, 30000);
 
@@ -535,12 +875,11 @@
       const d = await r.json();
       const dot  = document.getElementById('statusDot');
       const text = document.getElementById('statusText');
-      // CORRIGIDO: campo correto é ollama_online (não ollama_connected)
       if (d.ollama_online) {
-        dot.className  = 'status-dot ok';
+        dot.className    = 'status-dot ok';
         text.textContent = 'ollama online';
       } else {
-        dot.className  = 'status-dot err';
+        dot.className    = 'status-dot err';
         text.textContent = 'ollama offline';
       }
     } catch {
@@ -557,36 +896,58 @@
     } catch {}
   }
 
+  /* ─── THEME TOGGLE ──────────────────────────────────────────────────────── */
   const themeBtn = document.getElementById('themeBtn');
   themeBtn.addEventListener('click', () => {
     const html   = document.documentElement;
     const isDark = html.dataset.theme === 'dark';
     html.dataset.theme   = isDark ? 'light' : 'dark';
-    themeBtn.textContent = isDark ? '☀️' : '🌙';
+    themeBtn.textContent = isDark ? '🌙' : '☀️';
   });
 
+  /* ─── PROFILE ───────────────────────────────────────────────────────────── */
   function setProfile(btn) {
     document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     profile = btn.dataset.profile;
+
+    const cfg = PROFILE_CONFIG[profile];
+    document.getElementById('profileDisplay').textContent = `perfil: ${cfg.label}`;
+
+    const welcome = document.getElementById('welcome');
+    if (welcome) {
+      document.getElementById('welcomeDesc').textContent = cfg.desc;
+      renderQuickBtns(cfg.quickBtns);
+    }
   }
 
+  function renderQuickBtns(btns) {
+    const container = document.getElementById('quickBtns');
+    if (!container) return;
+    container.innerHTML = btns.map(b =>
+      `<button class="quick-btn" onclick="quickSend('${b.query.replace(/'/g, "\\'")}')">${b.label}</button>`
+    ).join('');
+  }
+
+  function buildWelcomeHTML(cfg) {
+    const btnsHtml = cfg.quickBtns.map(b =>
+      `<button class="quick-btn" onclick="quickSend('${b.query.replace(/'/g, "\\'")}')">${b.label}</button>`
+    ).join('');
+    return `
+      <div class="welcome" id="welcome">
+        <div class="welcome-card">
+          <h2>Olá, sou o <span>ALDE</span></h2>
+          <p id="welcomeDesc">${cfg.desc}</p>
+          <div class="quick-btns" id="quickBtns">${btnsHtml}</div>
+        </div>
+      </div>`;
+  }
+
+  /* ─── CHAT ──────────────────────────────────────────────────────────────── */
   function newChat() {
     sessionId = null;
     document.getElementById('sessionDisplay').textContent = 'sessão: nova';
-    const msgs = document.getElementById('messages');
-    msgs.innerHTML = `
-      <div class="welcome" id="welcome">
-        <div class="welcome-icon">🐧</div>
-        <h2>Olá, sou o ALDE</h2>
-        <p>Seu assistente técnico Linux. Pergunte sobre comandos, rede, processos, Docker, Git e mais.</p>
-        <div class="quick-btns">
-          <button class="quick-btn" onclick="quickSend('como listar arquivos por tamanho?')">ls por tamanho</button>
-          <button class="quick-btn" onclick="quickSend('como ver portas abertas no sistema?')">portas abertas</button>
-          <button class="quick-btn" onclick="quickSend('como matar um processo pelo nome?')">matar processo</button>
-          <button class="quick-btn" onclick="quickSend('como verificar uso de disco?')">uso de disco</button>
-        </div>
-      </div>`;
+    document.getElementById('messages').innerHTML = buildWelcomeHTML(PROFILE_CONFIG[profile]);
   }
 
   function quickSend(text) {
@@ -611,8 +972,7 @@
     const text  = input.value.trim();
     if (!text || isLoading) return;
 
-    const welcome = document.getElementById('welcome');
-    if (welcome) welcome.remove();
+    document.getElementById('welcome')?.remove();
 
     appendMsg('user', text);
     input.value = '';
@@ -626,35 +986,41 @@
       const res = await fetch(`${API}/chat`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message:    text,
-          session_id: sessionId,
-          profile:    profile,
-        }),
+        body: JSON.stringify({ message: text, session_id: sessionId, profile }),
       });
 
       const data = await res.json();
       removeTyping(typingId);
 
       if (!res.ok) {
-        // CORRIGIDO: extrai a mensagem de erro corretamente
-        const errMsg = data.detail || data.error || JSON.stringify(data);
-        appendMsg('bot', `⚠️ Erro: ${errMsg}`);
+        let errorMsg = 'Erro desconhecido';
+        if (data.detail) {
+          if (Array.isArray(data.detail)) {
+            errorMsg = data.detail.map(e => e.msg || e.message || JSON.stringify(e)).join(', ');
+          } else if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else {
+            errorMsg = JSON.stringify(data.detail, null, 2);
+          }
+        } else if (data.error) {
+          errorMsg = data.error;
+        } else {
+          errorMsg = JSON.stringify(data, null, 2);
+        }
+        appendMsg('bot', `⚠️ Erro: ${errorMsg}`);
         return;
       }
 
-      // CORRIGIDO: session_id pode ser null, só atualiza se existir
       if (data.session_id) {
         sessionId = data.session_id;
-        document.getElementById('sessionDisplay').textContent =
-          `sessão: ${sessionId.slice(0, 8)}…`;
+        document.getElementById('sessionDisplay').textContent = `sessão: ${sessionId.slice(0,8)}…`;
       }
 
       appendMsg('bot', data.response);
 
-    } catch (err) {
+    } catch {
       removeTyping(typingId);
-      appendMsg('bot', `⚠️ Não foi possível conectar à API. Verifique se o servidor está rodando.`);
+      appendMsg('bot', '⚠️ Não foi possível conectar à API. Verifique se o servidor está rodando.');
     } finally {
       isLoading = false;
       document.getElementById('sendBtn').disabled = false;

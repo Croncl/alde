@@ -34,6 +34,14 @@ app.include_router(chat.router, tags=["Chat"])
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Após o mount de /static (linha ~30)
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# ✨ ADICIONE ISTO: Monta /images para o frontend
+IMAGES_DIR = os.path.join(STATIC_DIR, "images")
+if os.path.exists(IMAGES_DIR):
+    app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
 
 
 @app.get("/", tags=["Frontend"], include_in_schema=False)

@@ -27,11 +27,12 @@ def test_chat_creates_session():
 
     request = ChatRequest(message="oi")
     with patch("app.services.ollama_service.generate", new_callable=AsyncMock, return_value="olá"):
-        import asyncio
+        with patch("knowledge_base.retrieval.retrieve", return_value=""):
+            import asyncio
 
-        response = asyncio.run(chat_service.chat(request))
-        assert response.response == "olá"
-        assert "tokens_estimated" in response.model_dump()
+            response = asyncio.run(chat_service.chat(request))
+            assert response.response == "olá"
+            assert "tokens_estimated" in response.model_dump()
 
 
 def test_chat_reuses_session():
@@ -43,12 +44,13 @@ def test_chat_reuses_session():
             new_callable=AsyncMock,
             return_value="ack",
         ):
-            import asyncio
+            with patch("knowledge_base.retrieval.retrieve", return_value=""):
+                import asyncio
 
-            r1 = asyncio.run(chat_service.chat(ChatRequest(message="primeira")))
-            sid = r1.session_id
-            r2 = asyncio.run(chat_service.chat(ChatRequest(message="segunda", session_id=sid)))
-            assert r2.session_id == sid
+                r1 = asyncio.run(chat_service.chat(ChatRequest(message="primeira")))
+                sid = r1.session_id
+                r2 = asyncio.run(chat_service.chat(ChatRequest(message="segunda", session_id=sid)))
+                assert r2.session_id == sid
 
 
 def test_get_history_returns_messages():
@@ -57,12 +59,13 @@ def test_get_history_returns_messages():
     with patch(
         "app.services.ollama_service.generate", new_callable=AsyncMock, return_value="resposta"
     ):
-        import asyncio
+        with patch("knowledge_base.retrieval.retrieve", return_value=""):
+            import asyncio
 
-        r = asyncio.run(chat_service.chat(ChatRequest(message="teste")))
-        # sem session_id no request, histórico não é armazenado — comportamento esperado
-        history = chat_service.get_history(r.session_id or "vazio")
-        assert isinstance(history, list)
+            r = asyncio.run(chat_service.chat(ChatRequest(message="teste")))
+            # sem session_id no request, histórico não é armazenado — comportamento esperado
+            history = chat_service.get_history(r.session_id or "vazio")
+            assert isinstance(history, list)
 
 
 def test_clear_history():
@@ -71,11 +74,12 @@ def test_clear_history():
     with patch(
         "app.services.ollama_service.chat_completion", new_callable=AsyncMock, return_value="ok"
     ):
-        import asyncio
+        with patch("knowledge_base.retrieval.retrieve", return_value=""):
+            import asyncio
 
-        sid = generate_session_id()
-        asyncio.run(chat_service.chat(ChatRequest(message="msg", session_id=sid)))
-        history_before = chat_service.get_history(sid)
-        assert len(history_before) > 0
-        chat_service.clear_history(sid)
-        assert chat_service.get_history(sid) == []
+            sid = generate_session_id()
+            asyncio.run(chat_service.chat(ChatRequest(message="msg", session_id=sid)))
+            history_before = chat_service.get_history(sid)
+            assert len(history_before) > 0
+            chat_service.clear_history(sid)
+            assert chat_service.get_history(sid) == []
